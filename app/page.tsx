@@ -1,18 +1,22 @@
 "use client";
 
 import Canva from "@/components/canva/page";
-import { useCursor } from "@/lib/utils/useCursor";
 import { useState } from "react";
 import "material-symbols";
+import Cursor from "@/components/cursor/page";
 
 export default function Home() {
-  const position = useCursor();
-
   const [draw, setDraw] = useState(false);
   const [brushSize, setBrushSize] = useState<number>(6);
   const [color, setColor] = useState<string>("black");
+  const [tool, setTool] = useState<"pen" | "rubber">("pen");
+
   return (
     <div>
+      <Cursor
+        size={brushSize}
+        draw={draw}
+      />
       <button
         className="absolute top-20 left-10 bg-black text-white p-2 m-2 rounded"
         onClick={() => setDraw(!draw)}
@@ -21,6 +25,19 @@ export default function Home() {
       </button>
       {draw && (
         <div className="absolute top-22 left-45 flex flex-col gap-2">
+          <button
+            className="bg-black text-white p-2  rounded"
+            onClick={() => setTool("pen")}
+          >
+            Pen
+          </button>
+
+          <button
+            className="bg-black text-white p-2  rounded"
+            onClick={() => setTool("rubber")}
+          >
+            Rubber
+          </button>
           <button
             className="bg-black text-white p-2  rounded"
             onClick={() => setBrushSize(6)}
@@ -60,16 +77,12 @@ export default function Home() {
           </div>
         </div>
       )}
-      <div className="border-2 border-black w-[1000px] h-[1000px]">
-        <Canva
-          draw={draw}
-          brushSize={brushSize}
-          color={color}
-        />
-      </div>
-      <h1>
-        x: {position.x} y: {position.y}
-      </h1>
+      <Canva
+        draw={draw}
+        brushSize={brushSize}
+        color={color}
+        tool={tool}
+      />
     </div>
   );
 }

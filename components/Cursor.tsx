@@ -4,7 +4,6 @@ import { useCursor } from "@/lib/utils/useCursor";
 
 export default function Cursor(props: { size: number; draw: boolean }) {
   const position = useCursor();
-  console.log(props.size);
 
   const styles = props.draw
     ? "pointer-events-none fixed z-1 rounded-full border-gray-900 border-1 opacity-80"

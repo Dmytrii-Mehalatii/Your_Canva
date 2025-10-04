@@ -10,10 +10,12 @@ export default function PenToolbar(props: {
 
   return (
     <div className="flex flex-row items-center w-[750px] h-12 bg-white px-2 shadow-[0_2px_4px_0_rgba(255,192,196,1)] rounded-2xl absolute left-[50%] right-[50%] translate-x-[-50%] bottom-[132px]">
-      <RangeInput
-        brushSize={props.brushSize}
-        setBrushSize={props.setBrushSize}
-      />
+      <div className="w-[278px]">
+        <RangeInput
+          brushSize={props.brushSize}
+          setBrushSize={props.setBrushSize}
+        />
+      </div>
 
       <div className="h-full w-[2px] bg-[#FFC0C4]" />
 

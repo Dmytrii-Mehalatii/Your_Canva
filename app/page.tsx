@@ -6,6 +6,7 @@ import PenToolbar from "@/components/PenToolbar";
 import { ColorProvider } from "@/lib/utils/useColorContext";
 import ToolBar from "@/components/ToolBar";
 import Cursor from "@/components/Cursor";
+import RubberToolbar from "@/components/RubberToolbar";
 
 export default function Home() {
   const [draw, setDraw] = useState(false);
@@ -24,13 +25,18 @@ export default function Home() {
         />
       )}
 
-      {drawIn ? (
+      {drawIn && (
         <PenToolbar
           brushSize={brushSize}
           setBrushSize={setBrushSize}
         />
-      ) : (
-        ""
+      )}
+
+      {rabOut && (
+        <RubberToolbar
+          brushSize={brushSize}
+          setBrushSize={setBrushSize}
+        />
       )}
 
       <ToolBar
@@ -49,6 +55,7 @@ export default function Home() {
         brushSize={brushSize}
         tool={tool}
         setDrawIn={setDrawIn}
+        showCustom={showCustom}
         setShowCustom={setShowCustom}
       />
     </ColorProvider>

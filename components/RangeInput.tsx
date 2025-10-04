@@ -3,7 +3,7 @@ export default function RangeInput(props: {
   setBrushSize?: (line: number) => void;
 }) {
   return (
-    <div className="flex flex-row items-center gap-4 px-5 w-[278px] h-full">
+    <div className="flex flex-row items-center gap-4 px-6 w-full h-full">
       <input
         type="range"
         min={1}

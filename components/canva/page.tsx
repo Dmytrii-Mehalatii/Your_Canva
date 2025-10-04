@@ -9,6 +9,7 @@ export default function Canva(props: {
   setDrawIn: (p: boolean) => void;
   brushSize: number;
   tool: "pen" | "rubber" | "other";
+  showCustom: boolean;
   setShowCustom: (p: boolean) => void;
 }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -59,14 +60,14 @@ export default function Canva(props: {
       typeof position.x === "number" &&
       typeof position.y === "number"
     ) {
-      if (positionRef.current && context) {
+      if (positionRef.current && context && props.showCustom) {
         startDrawing(context);
       }
       positionRef.current = { x: position.x, y: position.y };
     } else if (!position.isTracking) {
       positionRef.current = null;
     }
-  }, [position, props.draw, startDrawing]);
+  }, [position, props.draw, startDrawing, props.showCustom]);
   return (
     <canvas
       ref={canvasRef}

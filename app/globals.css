@@ -1,1 +1,44 @@
 @import "tailwindcss";
+
+.color-picker-container {
+  width: 246px;
+  height: 224px;
+  padding: 16px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  background: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 2px 4px 0 rgba(255, 192, 196, 1);
+}
+
+.color-picker-container .react-colorful {
+  width: 100%;
+  height: 140px;
+}
+
+.color-picker-container .react-colorful__saturation {
+  border-radius: 12px;
+  margin-bottom: 12px;
+}
+.color-picker-container .react-colorful__saturation-pointer {
+  width: 16px;
+  height: 16px;
+  border-radius: 100%;
+}
+
+.color-picker-container .react-colorful__hue,
+.color-picker-container .react-colorful__alpha {
+  height: 14px;
+  border-radius: 5px;
+}
+.color-picker-container .react-colorful__hue-pointer {
+  width: 20px;
+  height: 20px;
+  border-radius: 100%;
+}
+
+.color-picker-container .react-colorful__hue {
+  height: 14px;
+  border-radius: 6px;
+}

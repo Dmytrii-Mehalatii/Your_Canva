@@ -55,6 +55,7 @@ export default function Home() {
         brushSize={brushSize}
         tool={tool}
         setDrawIn={setDrawIn}
+        setRabOut={setRabOut}
         showCustom={showCustom}
         setShowCustom={setShowCustom}
       />

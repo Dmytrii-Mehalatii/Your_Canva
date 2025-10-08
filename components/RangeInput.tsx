@@ -3,7 +3,7 @@ export default function RangeInput(props: {
   setBrushSize?: (line: number) => void;
 }) {
   return (
-    <div className="flex flex-row items-center gap-4 px-6 w-full h-full">
+    <div className="flex flex-row items-center w-fit gap-4 h-full">
       <input
         type="range"
         min={1}
@@ -20,7 +20,9 @@ export default function RangeInput(props: {
            [&::-moz-range-thumb]:h-4 [&::-moz-range-thumb]:w-4 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:border-1 [&::-moz-range-thumb]:border-white [&::-moz-range-thumb]:bg-[#1C1B1F]
         "
       />
-      <p className="text-md font-medium">{props.brushSize?.toFixed(0)} px</p>
+      <p className="text-md font-medium min-w-11">
+        {props.brushSize?.toFixed(0)} px
+      </p>
     </div>
   );
 }

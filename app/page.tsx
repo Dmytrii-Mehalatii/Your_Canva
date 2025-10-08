@@ -16,6 +16,8 @@ export default function Home() {
   const [tool, setTool] = useState<"pen" | "rubber" | "other">("other");
 
   const [showCustom, setShowCustom] = useState(true);
+
+  const [clearAll, setClearAll] = useState(false);
   return (
     <ColorProvider>
       {showCustom && (
@@ -36,6 +38,7 @@ export default function Home() {
         <RubberToolbar
           brushSize={brushSize}
           setBrushSize={setBrushSize}
+          setClearAll={setClearAll}
         />
       )}
 
@@ -58,6 +61,8 @@ export default function Home() {
         setRabOut={setRabOut}
         showCustom={showCustom}
         setShowCustom={setShowCustom}
+        clearAll={clearAll}
+        setClearAll={setClearAll}
       />
     </ColorProvider>
   );

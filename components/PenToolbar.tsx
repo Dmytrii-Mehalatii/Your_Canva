@@ -14,8 +14,6 @@ export default function PenToolbar(props: {
   const [openColorPicker, setOpenColorPicker] = useState(false);
   const { open, isSupported } = useEyeDropper();
 
-  console.log(color);
-
   const pickColor = useCallback(() => {
     const openPicker = async () => {
       try {
@@ -62,68 +60,66 @@ export default function PenToolbar(props: {
           </div>
         </div>
       )}
-      <div className="flex flex-row items-center w-[750px] h-12 bg-white px-2 shadow-[0_2px_4px_0_rgba(255,192,196,1)] rounded-2xl absolute left-[50%] right-[50%] translate-x-[-50%] bottom-[132px]">
-        <div className="w-[278px]">
-          <RangeInput
-            brushSize={props.brushSize}
-            setBrushSize={props.setBrushSize}
-          />
-        </div>
+      <div className="flex flex-row items-center w-[688px] h-12 bg-white px-6 gap-4 shadow-[0_2px_4px_0_rgba(255,192,196,1)] rounded-2xl absolute left-[50%] right-[50%] translate-x-[-50%] bottom-[132px]">
+        <RangeInput
+          brushSize={props.brushSize}
+          setBrushSize={props.setBrushSize}
+        />
 
         <div className="h-full w-[2px] bg-[#FFC0C4]" />
 
-        <div className="flex flex-row items-center px-5 h-full gap-5">
+        <div className="flex flex-row items-center h-full gap-4 ">
           <div
-            className="bg-black rounded-full h-[28px] w-[28px] cursor-pointer"
+            className="bg-black rounded-full min-w-7 min-h-7 cursor-pointer"
             onClick={() => {
               setColor("black");
               setOpenColorPicker(false);
             }}
           ></div>
           <div
-            className="bg-[#D7000F] border-1 border-[#B1030F] rounded-full h-[28px] w-[28px] cursor-pointer"
+            className="bg-[#D7000F] border-1 border-[#B1030F] rounded-full min-w-7 min-h-7 cursor-pointer"
             onClick={() => {
               setColor("#D7000F");
               setOpenColorPicker(false);
             }}
           ></div>
           <div
-            className="bg-[#FF6A00] border-1 border-[#D05700] rounded-full h-[28px] w-[28px] cursor-pointer"
+            className="bg-[#FF6A00] border-1 border-[#D05700] rounded-full min-w-7 min-h-7 cursor-pointer"
             onClick={() => {
               setColor("#FF6A00");
               setOpenColorPicker(false);
             }}
           ></div>
           <div
-            className="bg-[#FFD900] border-1 border-[#DDBC00] rounded-full h-[28px] w-[28px] cursor-pointer"
+            className="bg-[#FFD900] border-1 border-[#DDBC00] rounded-full min-w-7 min-h-7 cursor-pointer"
             onClick={() => {
               setColor("#FFD900");
               setOpenColorPicker(false);
             }}
           ></div>
           <div
-            className="bg-[#9FF32A] border-1 border-[#7ACE04] rounded-full h-[28px] w-[28px] cursor-pointer"
+            className="bg-[#9FF32A] border-1 border-[#7ACE04] rounded-full min-w-7 min-h-7 cursor-pointer"
             onClick={() => {
               setColor("#9FF32A");
               setOpenColorPicker(false);
             }}
           ></div>
           <div
-            className="bg-[#22C4FF] border-1 border-[#0A9CD2] rounded-full h-[28px] w-[28px] cursor-pointer"
+            className="bg-[#22C4FF] border-1 border-[#0A9CD2] rounded-full min-w-7 min-h-7 cursor-pointer"
             onClick={() => {
               setColor("#22C4FF");
               setOpenColorPicker(false);
             }}
           ></div>
           <div
-            className="bg-[#1301B8] border-1 border-[#0D0081] rounded-full h-[28px] w-[28px] cursor-pointer"
+            className="bg-[#1301B8] border-1 border-[#0D0081] rounded-full min-w-7 min-h-7 cursor-pointer"
             onClick={() => {
               setColor("#1301B8");
               setOpenColorPicker(false);
             }}
           ></div>
           <div
-            className="bg-white border-1 border-[#B3B3B3] rounded-full h-[28px] w-[28px] cursor-pointer"
+            className="bg-white border-1 border-[#B3B3B3] rounded-full min-w-7 min-h-7 cursor-pointer"
             onClick={() => {
               setColor("white");
               setOpenColorPicker(false);

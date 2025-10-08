@@ -16,7 +16,8 @@ export default function IconButton(props: {
         onClick={props.onClick}
       >
         <span
-          className={`material-symbols-outlined ${props.size ? "" : "scale-165"} text-[${props.color}]`}
+          className={`material-symbols-outlined ${props.size ? "" : "scale-165"}`}
+          style={{ color: props.color }}
         >
           {props.icon}
         </span>

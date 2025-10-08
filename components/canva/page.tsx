@@ -12,6 +12,8 @@ export default function Canva(props: {
   tool: "pen" | "rubber" | "other";
   showCustom: boolean;
   setShowCustom: (p: boolean) => void;
+  clearAll: boolean;
+  setClearAll: (p: boolean) => void;
 }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const position = useCursor();
@@ -76,6 +78,18 @@ export default function Canva(props: {
     setCanvasHeight(window.innerHeight);
     setCanvasWidth(window.innerWidth);
   }, []);
+
+  useEffect(() => {
+    if (props.clearAll) {
+      const canvas = canvasRef.current;
+      const context = canvas?.getContext("2d");
+
+      if (!context) return;
+
+      context.clearRect(0, 0, canvasWidth, canvasHeight);
+      props.setClearAll(false);
+    }
+  }, [props.clearAll, props.setClearAll, canvasHeight, canvasWidth]);
 
   useEffect(() => {
     const canvas = canvasRef.current;

@@ -18,6 +18,7 @@ export default function ToolBar(props: {
     <div className="bg-white w-[572px] h-[60px] rounded-2xl shadow-[0_2px_4px_0_rgba(255,192,196,1)] absolute flex flex-row right-[50%] left-[50%] translate-x-[-50%] bottom-[48px] px-2 items-end">
       <IconButton
         icon="arrow_selector_tool"
+        color="#D7000F"
         onClick={() => {
           props.setDraw(false);
           props.setRabOut(false);
@@ -65,13 +66,25 @@ export default function ToolBar(props: {
 
       <div className="h-full w-[2px] bg-[#FFC0C4]" />
 
-      <IconButton icon="sticky_note" />
+      <IconButton
+        icon="sticky_note"
+        color="#D7000F"
+      />
 
-      <IconButton icon="shapes" />
+      <IconButton
+        icon="shapes"
+        color="#D7000F"
+      />
 
-      <IconButton icon="title" />
+      <IconButton
+        icon="title"
+        color="#D7000F"
+      />
 
-      <IconButton icon="add_reaction" />
+      <IconButton
+        icon="add_reaction"
+        color="#D7000F"
+      />
     </div>
   );
 }

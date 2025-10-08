@@ -1,9 +1,10 @@
 import Image from "next/image";
 import RangeInput from "./RangeInput";
 import { useColor } from "@/lib/utils/useColorContext";
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { HexColorPicker } from "react-colorful";
-// import EyeDropper from "react-eyedrop";
+import useEyeDropper from "use-eye-dropper";
+import IconButton from "./IconButton";
 
 export default function PenToolbar(props: {
   brushSize: number;
@@ -11,18 +12,32 @@ export default function PenToolbar(props: {
 }) {
   const { color, setColor } = useColor();
   const [openColorPicker, setOpenColorPicker] = useState(false);
+  const { open, isSupported } = useEyeDropper();
 
   console.log(color);
+
+  const pickColor = useCallback(() => {
+    const openPicker = async () => {
+      try {
+        const color = await open();
+        setColor(color.sRGBHex);
+      } catch (e: any) {
+        if (!e.canceled) return;
+      }
+    };
+    openPicker();
+  }, [open, setColor]);
   return (
     <div>
       {openColorPicker && (
-        <div className="w-[896px] flex justify-end items-end absolute left-1/2 right-1/2 -translate-x-1/2 bottom-[200px] transition-all duration-150">
-          <div className="color-picker-container">
-            <HexColorPicker
-              color={color}
-              onChange={setColor}
-            />
-            <div className="flex flex-row items-center gap-3 px-4 h-9 w-full border-2 border-[#FFC0C4] rounded-lg">
+        <div className="color-picker-container ">
+          {/* Had to give this color picker a normal css style cause it wouldnt work without it:( */}
+          <HexColorPicker
+            color={color}
+            onChange={setColor}
+          />
+          <div className="flex flex-row gap-3">
+            <div className="flex flex-row items-center text-center gap-3 px-4 h-9 w-full border-2 border-[#FFC0C4] rounded-lg">
               <div
                 className="w-5 h-5 rounded-full"
                 style={{ background: color }}
@@ -30,7 +45,20 @@ export default function PenToolbar(props: {
               <p>{color}</p>
             </div>
 
-            {/* <EyeDropper onChange={onChange} /> */}
+            {isSupported() ? (
+              <div
+                onClick={pickColor}
+                className=" border-2 border-[#FFC0C4] min-w-9 h-full rounded-lg"
+              >
+                <IconButton
+                  icon="colorize"
+                  size={6}
+                  color="#1C1B1F"
+                />
+              </div>
+            ) : (
+              <></>
+            )}
           </div>
         </div>
       )}

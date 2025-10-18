@@ -12,7 +12,7 @@ export type Point = {
 export type Stroke = {
   color: string;
   width: number;
-  tool: "pen" | "rubber";
+  tool: "pen" | "rubber" | "other";
   points: Point[];
 };
 
@@ -29,7 +29,15 @@ export default function Canva(props: {
 }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const positionRef = useRef<{ x: number; y: number } | null>(null);
-  const clickTimeout = useRef<NodeJS.Timeout | null>(null);
+  // const clickTimeout = useRef<NodeJS.Timeout | null>(null);
+
+  const previousViewPosition = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
+  const viewportTransformRef = useRef<{ x: number; y: number; scale: number }>({
+    x: 0,
+    y: 0,
+    scale: 1,
+  });
+  const isDraggingRef = useRef(false);
 
   const position = useCursor();
   const color = useColor();
@@ -44,69 +52,119 @@ export default function Canva(props: {
     return [];
   });
 
+  console.log(viewportTransformRef.current.scale);
+
   const [currentStroke, setCurrentStroke] = useState<Point[]>([]);
+  const panningCursorStyle =
+    position.isTracking && props.tool == "other" ? "cursor-grab" : "";
+  const styles = props.draw
+    ? `cursor-none ${panningCursorStyle}`
+    : `${panningCursorStyle}`;
 
-  const styles = props.draw ? "cursor-none" : "";
+  // const drawDot = useCallback(() => {
+  //   const canvas = canvasRef.current;
+  //   const context = canvas?.getContext("2d");
 
-  const startDrawing = useCallback(
-    (context: CanvasRenderingContext2D) => {
-      if (!context) return;
+  //   if (!context) return;
 
-      props.setDrawIn(false);
-      props.setRabOut(false);
+  //   context.beginPath();
+  //   context.fillStyle = props.tool === "pen" ? color.color : "rgba(0,0,0,1)";
+  //   context.globalCompositeOperation =
+  //     props.tool === "pen" ? "source-over" : "destination-out";
+  //   context.arc(
+  //     position.basicX || 0,
+  //     position.basicY || 0,
+  //     props.brushSize / 2,
+  //     0,
+  //     2 * Math.PI
+  //   );
+  //   context.fill();
+  // }, [position, props.brushSize, color.color, props.tool]);
+
+  const updateScale = (e) => {
+    const previousScale = viewportTransformRef.current.scale;
+    const oldX = viewportTransformRef.current.x;
+    const oldY = viewportTransformRef.current.y;
+
+    const localX = e.clientX;
+    const localY = e.clientY;
+
+    const sensitivity = 0.003;
+
+    let newScale = previousScale - e.deltaY * sensitivity;
+
+    newScale = Math.min(Math.max(newScale, 0.2), 5);
+
+    const newX = localX - (localX - oldX) * (newScale / previousScale);
+    const newY = localY - (localY - oldY) * (newScale / previousScale);
+
+    viewportTransformRef.current.x = newX;
+    viewportTransformRef.current.y = newY;
+    viewportTransformRef.current.scale = newScale;
+    color.setScale(viewportTransformRef.current.scale);
+  };
+
+  const getPos = (e: React.MouseEvent<HTMLCanvasElement, MouseEvent>) => {
+    const rect = canvasRef.current?.getBoundingClientRect();
+    if (!rect) return null;
+
+    const { x, y, scale } = viewportTransformRef.current;
+
+    return {
+      x: (e.clientX - rect.left - x) / scale,
+      y: (e.clientY - rect.top - y) / scale,
+    };
+  };
+
+  const render = () => {
+    const canvas = canvasRef.current;
+    const context = canvas?.getContext("2d");
+    if (!context || !canvas) return;
+    const { x, y, scale } = viewportTransformRef.current;
+
+    context.setTransform(1, 0, 0, 1, 0, 0);
+    context.clearRect(0, 0, canvasWidth, canvasHeight);
+
+    context.setTransform(scale, 0, 0, scale, x, y);
+    reRender();
+
+    if (currentStroke.length > 0) {
       context.lineWidth = props.brushSize;
       context.lineCap = "round";
-      context.strokeStyle =
-        props.tool === "pen" ? color.color : "rgba(0,0,0,1)";
-      context.globalCompositeOperation =
-        props.tool === "pen" ? "source-over" : "destination-out";
+      context.lineJoin = "round";
+      if (props.tool !== "other") {
+        context.strokeStyle =
+          props.tool === "pen" ? color.color : "rgba(0,0,0,1)";
+        context.globalCompositeOperation =
+          props.tool === "pen" ? "source-over" : "destination-out";
+      }
 
-      context.beginPath();
-      context.moveTo(positionRef.current?.x || 0, positionRef.current?.y || 0);
-      context.lineTo(position.x || 0, position.y || 0);
-      context.stroke();
-    },
-    [position.x, position.y, color, props]
-  );
+      if (props.tool !== "other") {
+        context.beginPath();
+        currentStroke.forEach((p, i) => {
+          if (i === 0) context.moveTo(p.x, p.y);
+          else context.lineTo(p.x, p.y);
+        });
+        context.stroke();
+      }
+    }
+  };
 
-  const drawDot = useCallback(() => {
-    const canvas = canvasRef.current;
-    const context = canvas?.getContext("2d");
-
-    if (!context) return;
-
-    context.beginPath();
-    context.fillStyle = props.tool === "pen" ? color.color : "rgba(0,0,0,1)";
-    context.globalCompositeOperation =
-      props.tool === "pen" ? "source-over" : "destination-out";
-    context.arc(
-      position.basicX || 0,
-      position.basicY || 0,
-      props.brushSize / 2,
-      0,
-      2 * Math.PI
-    );
-    context.fill();
-  }, [position, props.brushSize, color.color, props.tool]);
-
-  useEffect(() => {
-    setCanvasHeight(window.innerHeight);
-    setCanvasWidth(window.innerWidth);
-  }, []);
-
-  useEffect(() => {
+  const reRender = useCallback(() => {
     const canvas = canvasRef.current;
     const context = canvas?.getContext("2d");
     if (!context) return;
 
-    context.clearRect(0, 0, canvasWidth, canvasHeight);
     for (const stroke of strokes) {
       context.lineWidth = stroke.width;
       context.lineCap = "round";
-      context.strokeStyle =
-        stroke.tool === "pen" ? stroke.color : "rgba(0,0,0,1)";
-      context.globalCompositeOperation =
-        stroke.tool === "pen" ? "source-over" : "destination-out";
+      context.lineJoin = "round";
+      if (stroke.tool !== "other") {
+        context.strokeStyle =
+          stroke.tool === "pen" ? stroke.color : "rgba(0,0,0,1)";
+        context.globalCompositeOperation =
+          stroke.tool === "pen" ? "source-over" : "destination-out";
+      }
 
       context.beginPath();
       stroke.points.forEach((p, i) => {
@@ -117,8 +175,20 @@ export default function Canva(props: {
     }
 
     context.globalCompositeOperation = "source-over";
-  }, [strokes, canvasHeight, canvasWidth]);
+  }, [strokes]);
 
+  //can chagne it with use memo
+  useEffect(() => {
+    setCanvasHeight(window.innerHeight);
+    setCanvasWidth(window.innerWidth);
+  }, []);
+
+  //For redrawing the canvas when strokes change
+  useEffect(() => {
+    reRender();
+  }, [reRender]);
+
+  //For clearing the canvas
   useEffect(() => {
     if (props.clearAll) {
       const canvas = canvasRef.current;
@@ -133,35 +203,24 @@ export default function Canva(props: {
     }
   }, [props, canvasHeight, canvasWidth]);
 
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    const context = canvas?.getContext("2d");
-
-    if (
-      props.draw &&
-      typeof position.x === "number" &&
-      typeof position.y === "number"
-    ) {
-      if (positionRef.current && context && props.showCustom) {
-        startDrawing(context);
-      }
-      positionRef.current = { x: position.x, y: position.y };
-    } else if (!position.isTracking) {
-      positionRef.current = null;
-    }
-  }, [position, props, startDrawing, canvasHeight, canvasWidth]);
-
-  const getPos = (e: React.MouseEvent<HTMLButtonElement>) => {
-    const rect = canvasRef.current?.getBoundingClientRect();
-    if (!rect) return;
-    return { x: e.clientX - rect.left, y: e.clientY - rect.top };
-  };
-
+  // can use useMemo
   useEffect(() => {
     if (strokes.length > 0) {
       localStorage.setItem("strokes", JSON.stringify(strokes));
     }
   }, [strokes]);
+
+  const getNewViewportPosition = (e: MouseEvent) => {
+    const dx = e.clientX - previousViewPosition.current.x;
+    const dy = e.clientY - previousViewPosition.current.y;
+
+    previousViewPosition.current = { x: e.clientX, y: e.clientY };
+
+    viewportTransformRef.current.x += dx;
+    viewportTransformRef.current.y += dy;
+
+    render();
+  };
 
   return (
     <canvas
@@ -171,26 +230,46 @@ export default function Canva(props: {
       className={styles}
       onMouseEnter={() => props.setShowCustom(true)}
       onMouseLeave={() => props.setShowCustom(false)}
+      onWheel={(e) => {
+        updateScale(e);
+
+        render();
+      }}
       onMouseDown={(e: any) => {
-        clickTimeout.current = setTimeout(() => {
-          drawDot();
-        }, 100);
+        // clickTimeout.current = setTimeout(() => {
+        //   drawDot();
+        // }, 100);
+
+        if (props.tool == "other") {
+          isDraggingRef.current = true;
+          previousViewPosition.current = { x: e.clientX, y: e.clientY };
+        }
 
         const pos = getPos(e);
         if (!pos) return;
-        setCurrentStroke([{ x: pos.x, y: pos.y }]);
+        if (position.isTracking) {
+          setCurrentStroke([{ x: pos.x, y: pos.y }]);
+        }
       }}
       onMouseMove={(e: any) => {
-        if (clickTimeout.current) {
-          clearTimeout(clickTimeout.current);
-          clickTimeout.current = null;
+        // if (clickTimeout.current) {
+        //   clearTimeout(clickTimeout.current);
+        //   clickTimeout.current = null;
+        // }
+
+        if (props.tool === "other" && isDraggingRef.current) {
+          getNewViewportPosition(e);
         }
+
         const pos = getPos(e);
         if (!pos) return;
-        setCurrentStroke((prev) => [...prev, { x: pos.x, y: pos.y }]);
+        if (position.isTracking) {
+          setCurrentStroke((prev) => [...prev, { x: pos.x, y: pos.y }]);
+        }
+        render();
       }}
       onMouseUp={() => {
-        if (currentStroke.length > 0) {
+        if (currentStroke.length > 0 && props.tool !== "other") {
           setStrokes((prev) => [
             ...prev,
             {
@@ -202,6 +281,9 @@ export default function Canva(props: {
           ]);
           setCurrentStroke([]);
           positionRef.current = null;
+        } else {
+          setCurrentStroke([]);
+          isDraggingRef.current = false;
         }
       }}
     />

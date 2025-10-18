@@ -23,6 +23,7 @@ export default function ToolBar(props: {
           props.setDraw(false);
           props.setRabOut(false);
           props.setDrawIn(false);
+          props.setTool("other");
         }}
       />
 

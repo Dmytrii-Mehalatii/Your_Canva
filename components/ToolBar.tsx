@@ -10,8 +10,8 @@ export default function ToolBar(props: {
   setDrawIn: (p: boolean) => void;
   rabOut: boolean;
   setRabOut: (p: boolean) => void;
-  tool: "pen" | "rubber" | "other";
-  setTool: (p: "pen" | "rubber" | "other") => void;
+  tool: "pen" | "rubber" | "text" | "other";
+  setTool: (p: "pen" | "rubber" | "text" | "other") => void;
 }) {
   const { color } = useColor();
   return (
@@ -80,6 +80,12 @@ export default function ToolBar(props: {
       <IconButton
         icon="title"
         color="#D7000F"
+        onClick={() => {
+          props.setDraw(false);
+          props.setRabOut(false);
+          props.setDrawIn(false);
+          props.setTool("text");
+        }}
       />
 
       <IconButton

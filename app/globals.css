@@ -48,3 +48,7 @@
   height: 14px;
   border-radius: 6px;
 }
+
+.icon-thin {
+  font-variation-settings: "wght" 200;
+}

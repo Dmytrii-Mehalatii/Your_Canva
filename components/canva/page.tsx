@@ -9,7 +9,11 @@ import {
   useRef,
   useState,
 } from "react";
-
+// import AutoResizeTextAreas from "./textarea/page";
+import dynamic from "next/dynamic";
+const AutoResizeTextAreas = dynamic(() => import("./textarea/page"), {
+  ssr: false,
+});
 export type Point = {
   x: number;
   y: number;
@@ -20,8 +24,13 @@ export type Stroke = {
   width: number;
   tool: "pen" | "rubber" | "other" | "text";
   points: Point[];
-  text?: string;
+};
+
+export type TextStroke = {
+  color?: string;
   fontSize?: number;
+  value: string | undefined;
+  points: Point[];
 };
 
 export default function Canva(props: {
@@ -37,7 +46,6 @@ export default function Canva(props: {
   setMapSrc: (src: string | null) => void;
 }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  // const miniCanvasRef = useRef<HTMLCanvasElement>(canvasRef.current);
   const positionRef = useRef<{ x: number; y: number } | null>(null);
   // const clickTimeout = useRef<NodeJS.Timeout | null>(null);
 
@@ -62,86 +70,22 @@ export default function Canva(props: {
     return [];
   });
 
+  const [textStrokes, setTextStrokes] = useState<TextStroke[]>(() => {
+    if (typeof window !== "undefined") {
+      const savedText = localStorage.getItem("textStrokes");
+      if (savedText) return JSON.parse(savedText);
+    }
+    return [];
+  });
+
   const [currentStroke, setCurrentStroke] = useState<Point[]>([]);
+
   const panningCursorStyle =
     position.isTracking && props.tool == "other" ? "cursor-grab" : "";
   const textCursorStyle = props.tool === "text" ? "cursor-text" : "";
   const styles = props.draw
     ? `cursor-none ${panningCursorStyle} ${textCursorStyle}`
     : `${panningCursorStyle} ${textCursorStyle}`;
-
-  // const mapUpdateTimeout = useRef<NodeJS.Timeout | null>(null);
-
-  // const drawDot = useCallback(() => {
-  //   const canvas = canvasRef.current;
-  //   const context = canvas?.getContext("2d");
-
-  //   if (!context) return;
-
-  //   context.beginPath();
-  //   context.fillStyle = props.tool === "pen" ? color.color : "rgba(0,0,0,1)";
-  //   context.globalCompositeOperation =
-  //     props.tool === "pen" ? "source-over" : "destination-out";
-  //   context.arc(
-  //     position.basicX || 0,
-  //     position.basicY || 0,
-  //     props.brushSize / 2,
-  //     0,
-  //     2 * Math.PI
-  //   );
-  //   context.fill();
-  // }, [position, props.brushSize, color.color, props.tool]);
-
-  // function drawAllStrokes(context: CanvasRenderingContext2D) {
-  //   for (const stroke of strokes) {
-  //     context.lineWidth = stroke.width;
-  //     context.lineCap = "round";
-  //     context.lineJoin = "round";
-  //     if (stroke.tool !== "other") {
-  //       context.strokeStyle =
-  //         stroke.tool === "pen" ? stroke.color : "rgba(0,0,0,1)";
-  //       context.globalCompositeOperation =
-  //         stroke.tool === "pen" ? "source-over" : "destination-out";
-  //     }
-
-  //     context.beginPath();
-  //     stroke.points.forEach((p, i) => {
-  //       if (i === 0) context.moveTo(p.x, p.y);
-  //       else context.lineTo(p.x, p.y);
-  //     });
-  //     context.stroke();
-  //   }
-
-  //   context.globalCompositeOperation = "source-over";
-  // }
-
-  // useEffect(() => {
-  //   const offscreen = document.createElement("canvas");
-  //   offscreen.width = canvasWidth;
-  //   offscreen.height = canvasHeight;
-  //   miniCanvasRef.current = offscreen;
-  // }, [canvasWidth, canvasHeight]);
-
-  // function updateMap() {
-  //   const miniCanvas = miniCanvasRef.current;
-  //   const context = miniCanvas?.getContext("2d");
-  //   if (!context || !miniCanvas) return;
-
-  //   context.setTransform(1, 0, 0, 1, 1050, 500);
-  //   context.clearRect(0, 0, miniCanvas.width, miniCanvas?.height);
-
-  //   const scale = Math.min(550 / canvasWidth, 550 / canvasHeight);
-  //   context.scale(scale, scale);
-
-  //   drawAllStrokes(context);
-
-  //   if (mapUpdateTimeout.current) return;
-  //   mapUpdateTimeout.current = setTimeout(() => {
-  //     const canvas = miniCanvasRef.current;
-  //     if (canvas) props.setMapSrc(canvas.toDataURL("image/png"));
-  //     mapUpdateTimeout.current = null;
-  //   }, 400);
-  // }
 
   const updateScale = (e: React.WheelEvent<HTMLCanvasElement>) => {
     const previousScale = viewportTransformRef.current.scale;
@@ -189,7 +133,6 @@ export default function Canva(props: {
 
     context.setTransform(scale, 0, 0, scale, x, y);
     reRender();
-    // updateMap();
 
     if (currentStroke.length > 0) {
       context.lineWidth = props.brushSize;
@@ -219,15 +162,6 @@ export default function Canva(props: {
     if (!context) return;
 
     for (const stroke of strokes) {
-      if (stroke.tool === "text" && stroke.text) {
-        context.font = `${stroke.fontSize || 20}px Arial`;
-        context.fillStyle = stroke.color;
-        const p = stroke.points[0];
-        context.fillText(stroke.text, p.x, p.y);
-        continue;
-      }
-
-      // normal stroke drawing
       context.lineWidth = stroke.width;
       context.lineCap = "round";
       context.lineJoin = "round";
@@ -275,7 +209,10 @@ export default function Canva(props: {
     if (strokes.length > 0) {
       localStorage.setItem("strokes", JSON.stringify(strokes));
     }
-  }, [strokes]);
+    if (textStrokes.length > 0) {
+      localStorage.setItem("textStrokes", JSON.stringify(textStrokes));
+    }
+  }, [strokes, textStrokes]);
 
   const getNewViewportPosition = (
     e: React.MouseEvent<HTMLCanvasElement, MouseEvent>
@@ -291,148 +228,98 @@ export default function Canva(props: {
     render();
   };
 
+  const createInput = useCallback(
+    (e: React.MouseEvent<HTMLCanvasElement, MouseEvent>) => {
+      const pos = getPos(e);
+      if (!pos) return;
+
+      setTextStrokes((prev) => [
+        ...prev,
+        {
+          value: "",
+          points: [{ x: pos.x, y: pos.y }],
+        },
+      ]);
+    },
+    []
+  );
+
   return (
-    <canvas
-      ref={canvasRef}
-      height={canvasHeight}
-      width={canvasWidth}
-      className={styles}
-      onMouseEnter={() => props.setShowCustom(true)}
-      onMouseLeave={() => props.setShowCustom(false)}
-      onWheel={(e) => {
-        updateScale(e);
+    <div>
+      <canvas
+        ref={canvasRef}
+        height={canvasHeight}
+        width={canvasWidth}
+        className={styles}
+        onMouseEnter={() => props.setShowCustom(true)}
+        onMouseLeave={() => props.setShowCustom(false)}
+        onWheel={(e) => {
+          updateScale(e);
 
-        render();
-      }}
-      onMouseDown={(e: React.MouseEvent<HTMLCanvasElement, MouseEvent>) => {
-        // clickTimeout.current = setTimeout(() => {
-        //   drawDot();
-        // }, 100);
-        if (props.tool === "text") {
-          const pos = getPos(e);
-          if (!pos) return;
-
-          const input = document.createElement("textarea");
-          input.placeholder = "Add text";
-          input.style.position = "absolute";
-          input.style.left = `${e.clientX}px`;
-          input.style.top = `${e.clientY}px`;
-          input.style.fontSize = "20px";
-          input.style.height = "2em";
-          input.style.overflow = "hidden";
-          input.style.resize = "none";
-          input.style.display = "flex";
-          input.style.justifyContent = "center";
-          input.style.padding = "6px 4px 2px 4px";
-          input.style.zIndex = "9999";
-          input.style.outline = "none";
-          input.style.minWidth = "50px";
-          input.style.maxWidth = "600px";
-          input.style.wordBreak = "break-word";
-
-          document.body.appendChild(input);
-
-          const measurer = document.createElement("span");
-          measurer.style.position = "absolute";
-          measurer.style.visibility = "hidden";
-          measurer.style.whiteSpace = "pre";
-          measurer.style.fontSize = input.style.fontSize;
-          measurer.style.fontFamily = "inherit";
-          document.body.appendChild(measurer);
-
-          function updateWidth() {
-            measurer.textContent = input.value || input.placeholder;
-            input.style.width = measurer.offsetWidth + 10 + "px";
-
-            input.style.height = "2em";
-            input.style.height =
-              Math.min(
-                input.scrollHeight,
-                24 * parseFloat(getComputedStyle(input).lineHeight)
-              ) + "px";
+          render();
+        }}
+        onMouseDown={(e: React.MouseEvent<HTMLCanvasElement, MouseEvent>) => {
+          // clickTimeout.current = setTimeout(() => {
+          //   drawDot();
+          // }, 100);
+          if (props.tool === "text") {
+            createInput(e);
           }
 
-          input.addEventListener("input", updateWidth);
-          updateWidth();
+          if (props.tool == "other") {
+            isDraggingRef.current = true;
+            previousViewPosition.current = { x: e.clientX, y: e.clientY };
+          }
 
-          input.addEventListener("focus", () => {
-            input.style.outline = "2px solid red";
-            input.style.borderColor = "red";
-          });
+          const pos = getPos(e);
+          if (!pos) return;
+          if (position.isTracking) {
+            setCurrentStroke([{ x: pos.x, y: pos.y }]);
+          }
+        }}
+        onMouseMove={(e: React.MouseEvent<HTMLCanvasElement, MouseEvent>) => {
+          // if (clickTimeout.current) {
+          //   clearTimeout(clickTimeout.current);
+          //   clickTimeout.current = null;
+          // }
 
-          input.addEventListener("blur", () => {
-            input.style.outline = "none";
-            input.style.borderColor = "#888";
-          });
+          if (props.tool === "other" && isDraggingRef.current) {
+            getNewViewportPosition(e);
+          }
 
-          const value = input.value;
-
-          if (value.trim() !== "") {
+          const pos = getPos(e);
+          if (!pos) return;
+          if (position.isTracking) {
+            setCurrentStroke((prev) => [...prev, { x: pos.x, y: pos.y }]);
+          }
+          render();
+        }}
+        onMouseUp={() => {
+          if (currentStroke.length > 0 && props.tool !== "other") {
             setStrokes((prev) => [
               ...prev,
               {
                 color: color.color,
                 width: props.brushSize,
-                tool: "text",
-                points: [{ x: pos.x, y: pos.y }],
-                text: value,
-                fontSize: 20,
+                tool: props.tool === "pen" ? "pen" : "rubber",
+                points: currentStroke.map((p) => ({ ...p })),
               },
             ]);
-            document.body.removeChild(input);
-
-            render();
+            setCurrentStroke([]);
+            positionRef.current = null;
+          } else {
+            setCurrentStroke([]);
+            isDraggingRef.current = false;
           }
-
-          return;
-        }
-
-        if (props.tool == "other") {
-          isDraggingRef.current = true;
-          previousViewPosition.current = { x: e.clientX, y: e.clientY };
-        }
-
-        const pos = getPos(e);
-        if (!pos) return;
-        if (position.isTracking) {
-          setCurrentStroke([{ x: pos.x, y: pos.y }]);
-        }
-      }}
-      onMouseMove={(e: React.MouseEvent<HTMLCanvasElement, MouseEvent>) => {
-        // if (clickTimeout.current) {
-        //   clearTimeout(clickTimeout.current);
-        //   clickTimeout.current = null;
-        // }
-
-        if (props.tool === "other" && isDraggingRef.current) {
-          getNewViewportPosition(e);
-        }
-
-        const pos = getPos(e);
-        if (!pos) return;
-        if (position.isTracking) {
-          setCurrentStroke((prev) => [...prev, { x: pos.x, y: pos.y }]);
-        }
-        render();
-      }}
-      onMouseUp={() => {
-        if (currentStroke.length > 0 && props.tool !== "other") {
-          setStrokes((prev) => [
-            ...prev,
-            {
-              color: color.color,
-              width: props.brushSize,
-              tool: props.tool === "pen" ? "pen" : "rubber",
-              points: currentStroke.map((p) => ({ ...p })),
-            },
-          ]);
-          setCurrentStroke([]);
-          positionRef.current = null;
-        } else {
-          setCurrentStroke([]);
-          isDraggingRef.current = false;
-        }
-      }}
-    />
+        }}
+      />
+      {textStrokes && (
+        <AutoResizeTextAreas
+          textStrokes={textStrokes}
+          setTextStrokes={setTextStrokes}
+          viewport={viewportTransformRef.current}
+        />
+      )}
+    </div>
   );
 }

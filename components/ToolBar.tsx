@@ -19,6 +19,7 @@ export default function ToolBar(props: {
       <IconButton
         icon="arrow_selector_tool"
         color="#D7000F"
+        bigBox={true}
         onClick={() => {
           props.setDraw(false);
           props.setRabOut(false);
@@ -70,16 +71,19 @@ export default function ToolBar(props: {
       <IconButton
         icon="sticky_note"
         color="#D7000F"
+        bigBox={true}
       />
 
       <IconButton
         icon="shapes"
         color="#D7000F"
+        bigBox={true}
       />
 
       <IconButton
         icon="title"
         color="#D7000F"
+        bigBox={true}
         onClick={() => {
           props.setDraw(false);
           props.setRabOut(false);
@@ -91,6 +95,7 @@ export default function ToolBar(props: {
       <IconButton
         icon="add_reaction"
         color="#D7000F"
+        bigBox={true}
       />
     </div>
   );

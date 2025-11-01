@@ -9,7 +9,6 @@ import {
   useRef,
   useState,
 } from "react";
-// import AutoResizeTextAreas from "./textarea/page";
 import dynamic from "next/dynamic";
 const AutoResizeTextAreas = dynamic(() => import("./textarea/page"), {
   ssr: false,
@@ -20,14 +19,14 @@ export type Point = {
 };
 
 export type Stroke = {
-  color: string;
+  penColor: string;
   width: number;
   tool: "pen" | "rubber" | "other" | "text";
   points: Point[];
 };
 
 export type TextStroke = {
-  color?: string;
+  color: string;
   fontSize?: number;
   value: string | undefined;
   points: Point[];
@@ -47,7 +46,6 @@ export default function Canva(props: {
 }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const positionRef = useRef<{ x: number; y: number } | null>(null);
-  // const clickTimeout = useRef<NodeJS.Timeout | null>(null);
 
   const previousViewPosition = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
   const viewportTransformRef = useRef<{ x: number; y: number; scale: number }>({
@@ -77,6 +75,8 @@ export default function Canva(props: {
     }
     return [];
   });
+
+  console.log(textStrokes);
 
   const [currentStroke, setCurrentStroke] = useState<Point[]>([]);
 
@@ -140,7 +140,7 @@ export default function Canva(props: {
       context.lineJoin = "round";
       if (props.tool !== "other" && props.tool !== "text") {
         context.strokeStyle =
-          props.tool === "pen" ? color.color : "rgba(0,0,0,1)";
+          props.tool === "pen" ? color.penColor : "rgba(0,0,0,1)";
         context.globalCompositeOperation =
           props.tool === "pen" ? "source-over" : "destination-out";
       }
@@ -166,7 +166,7 @@ export default function Canva(props: {
       context.lineCap = "round";
       context.lineJoin = "round";
       context.strokeStyle =
-        stroke.tool === "pen" ? stroke.color : "rgba(0,0,0,1)";
+        stroke.tool === "pen" ? stroke.penColor : "rgba(0,0,0,1)";
       context.globalCompositeOperation =
         stroke.tool === "pen" ? "source-over" : "destination-out";
 
@@ -237,11 +237,12 @@ export default function Canva(props: {
         ...prev,
         {
           value: "",
+          color: String(color.textColor),
           points: [{ x: pos.x, y: pos.y }],
         },
       ]);
     },
-    []
+    [color.textColor]
   );
 
   return (
@@ -259,9 +260,6 @@ export default function Canva(props: {
           render();
         }}
         onMouseDown={(e: React.MouseEvent<HTMLCanvasElement, MouseEvent>) => {
-          // clickTimeout.current = setTimeout(() => {
-          //   drawDot();
-          // }, 100);
           if (props.tool === "text") {
             createInput(e);
           }
@@ -278,11 +276,6 @@ export default function Canva(props: {
           }
         }}
         onMouseMove={(e: React.MouseEvent<HTMLCanvasElement, MouseEvent>) => {
-          // if (clickTimeout.current) {
-          //   clearTimeout(clickTimeout.current);
-          //   clickTimeout.current = null;
-          // }
-
           if (props.tool === "other" && isDraggingRef.current) {
             getNewViewportPosition(e);
           }
@@ -299,7 +292,7 @@ export default function Canva(props: {
             setStrokes((prev) => [
               ...prev,
               {
-                color: color.color,
+                penColor: color.penColor,
                 width: props.brushSize,
                 tool: props.tool === "pen" ? "pen" : "rubber",
                 points: currentStroke.map((p) => ({ ...p })),

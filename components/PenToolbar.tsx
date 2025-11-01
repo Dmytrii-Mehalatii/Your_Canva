@@ -1,64 +1,27 @@
 import Image from "next/image";
 import RangeInput from "./RangeInput";
 import { useColor } from "@/lib/utils/useColorContext";
-import { useCallback, useState } from "react";
-import { HexColorPicker } from "react-colorful";
-import useEyeDropper from "use-eye-dropper";
-import IconButton from "./IconButton";
+import { useState } from "react";
+import ColorPicker from "./ColorPicker";
 
 export default function PenToolbar(props: {
   brushSize: number;
   setBrushSize: (p: number) => void;
 }) {
-  const { color, setColor } = useColor();
+  const { setPenColor } = useColor();
   const [openColorPicker, setOpenColorPicker] = useState(false);
-  const { open, isSupported } = useEyeDropper();
-
-  const pickColor = useCallback(() => {
-    const openPicker = async () => {
-      try {
-        const color = await open();
-        setColor(color.sRGBHex);
-      } catch (e: any) {
-        if (!e.canceled) return;
-      }
-    };
-    openPicker();
-  }, [open, setColor]);
   return (
     <div>
       {openColorPicker && (
-        <div className="color-picker-container ">
-          {/* Had to give this color picker a normal css style cause it wouldnt work without it:( */}
-          <HexColorPicker
-            color={color}
-            onChange={setColor}
-          />
-          <div className="flex flex-row gap-3">
-            <div className="flex flex-row items-center text-center gap-3 px-4 h-9 w-full border-2 border-[#FFC0C4] rounded-lg">
-              <div
-                className="w-5 h-5 rounded-full"
-                style={{ background: color }}
-              ></div>
-              <p>{color}</p>
-            </div>
-
-            {isSupported() ? (
-              <div
-                onClick={pickColor}
-                className=" border-2 border-[#FFC0C4] min-w-9 h-full rounded-lg"
-              >
-                <IconButton
-                  icon="colorize"
-                  size={6}
-                  color="#1C1B1F"
-                />
-              </div>
-            ) : (
-              <></>
-            )}
-          </div>
-        </div>
+        <ColorPicker
+          type="stroke"
+          bottom={200}
+          left={50}
+          right={50}
+          translate="-50"
+          marginLeft={300}
+          marginBottom={0}
+        />
       )}
       <div className="flex flex-row items-center w-[688px] h-12 bg-white px-6 gap-4 shadow-[0_2px_4px_0_rgba(255,192,196,1)] rounded-2xl absolute left-[50%] right-[50%] translate-x-[-50%] bottom-[132px]">
         <RangeInput
@@ -72,56 +35,56 @@ export default function PenToolbar(props: {
           <div
             className="bg-black rounded-full min-w-7 min-h-7 cursor-pointer"
             onClick={() => {
-              setColor("black");
+              setPenColor("black");
               setOpenColorPicker(false);
             }}
           ></div>
           <div
             className="bg-[#D7000F] border-1 border-[#B1030F] rounded-full min-w-7 min-h-7 cursor-pointer"
             onClick={() => {
-              setColor("#D7000F");
+              setPenColor("#D7000F");
               setOpenColorPicker(false);
             }}
           ></div>
           <div
             className="bg-[#FF6A00] border-1 border-[#D05700] rounded-full min-w-7 min-h-7 cursor-pointer"
             onClick={() => {
-              setColor("#FF6A00");
+              setPenColor("#FF6A00");
               setOpenColorPicker(false);
             }}
           ></div>
           <div
             className="bg-[#FFD900] border-1 border-[#DDBC00] rounded-full min-w-7 min-h-7 cursor-pointer"
             onClick={() => {
-              setColor("#FFD900");
+              setPenColor("#FFD900");
               setOpenColorPicker(false);
             }}
           ></div>
           <div
             className="bg-[#9FF32A] border-1 border-[#7ACE04] rounded-full min-w-7 min-h-7 cursor-pointer"
             onClick={() => {
-              setColor("#9FF32A");
+              setPenColor("#9FF32A");
               setOpenColorPicker(false);
             }}
           ></div>
           <div
             className="bg-[#22C4FF] border-1 border-[#0A9CD2] rounded-full min-w-7 min-h-7 cursor-pointer"
             onClick={() => {
-              setColor("#22C4FF");
+              setPenColor("#22C4FF");
               setOpenColorPicker(false);
             }}
           ></div>
           <div
             className="bg-[#1301B8] border-1 border-[#0D0081] rounded-full min-w-7 min-h-7 cursor-pointer"
             onClick={() => {
-              setColor("#1301B8");
+              setPenColor("#1301B8");
               setOpenColorPicker(false);
             }}
           ></div>
           <div
             className="bg-white border-1 border-[#B3B3B3] rounded-full min-w-7 min-h-7 cursor-pointer"
             onClick={() => {
-              setColor("white");
+              setPenColor("white");
               setOpenColorPicker(false);
             }}
           ></div>

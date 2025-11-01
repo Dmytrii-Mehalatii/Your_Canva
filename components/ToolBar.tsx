@@ -13,7 +13,7 @@ export default function ToolBar(props: {
   tool: "pen" | "rubber" | "text" | "other";
   setTool: (p: "pen" | "rubber" | "text" | "other") => void;
 }) {
-  const { color } = useColor();
+  const { penColor } = useColor();
   return (
     <div className="bg-white w-[572px] h-[60px] rounded-2xl shadow-[0_2px_4px_0_rgba(255,192,196,1)] absolute flex flex-row right-[50%] left-[50%] translate-x-[-50%] bottom-[48px] px-2 items-end">
       <IconButton
@@ -43,7 +43,7 @@ export default function ToolBar(props: {
           <BlackPencil
             width={105}
             height={100}
-            color={color}
+            color={penColor}
             className={`transition-all duration-150 hover:cursor-pointer ${props.drawIn ? "translate-y-3" : "translate-y-8"}`}
           />
         </button>
@@ -60,7 +60,7 @@ export default function ToolBar(props: {
           <BlackRubber
             width={105}
             height={100}
-            color={color}
+            color={penColor}
             className={`transition-all duration-150 hover:cursor-pointer ${props.rabOut ? "translate-y-3" : "translate-y-8"}`}
           />
         </button>

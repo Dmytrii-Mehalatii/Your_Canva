@@ -1,7 +1,7 @@
 "use client";
 
-import IconButton from "@/components/IconButton";
 import { useEffect, useRef, useState } from "react";
+import TextSettings from "./textSettings/page";
 
 type Point = {
   x: number;
@@ -10,21 +10,39 @@ type Point = {
 
 type TextStroke = {
   value?: string;
+  color: string;
   points: Point[];
 };
 
 interface Props {
-  textStrokes?: TextStroke[];
+  textStrokes: TextStroke[];
   setTextStrokes: React.Dispatch<React.SetStateAction<TextStroke[]>>;
   viewport?: { x: number; y: number; scale: number };
 }
 
 function AutoResizeTextAreas({ textStrokes, setTextStrokes, viewport }: Props) {
   const measurerRef = useRef<HTMLSpanElement | null>(null);
+
   const [currentIndex, setCurrentIndex] = useState<number | null>(null);
 
   const [textareaHight, setTextareaHight] = useState<number | null>(null);
   const [textareaWidth, setTextareaWidth] = useState<number | null>(null);
+
+  const settingsRef = useRef<HTMLElement | null>(null);
+
+  useEffect(() => {
+    const handleClick = (e: MouseEvent) => {
+      if (
+        !settingsRef.current?.contains(e.target as Node) &&
+        !document.activeElement?.matches("textarea")
+      ) {
+        setCurrentIndex(null);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, []);
 
   useEffect(() => {
     const measurer = document.createElement("div");
@@ -71,9 +89,7 @@ function AutoResizeTextAreas({ textStrokes, setTextStrokes, viewport }: Props) {
         const left = text.points[0].x * scale + (viewport?.x ?? 0);
         const top = text.points[0].y * scale + (viewport?.y ?? 0);
 
-        let customLeft, customTop;
-
-        //Added hardcoded values, cause Idk how I can this other way :/
+        let customTop;
         if (top >= 50 && textareaHight) {
           customTop = top - 70;
         } else if (textareaHight) {
@@ -83,94 +99,31 @@ function AutoResizeTextAreas({ textStrokes, setTextStrokes, viewport }: Props) {
         return (
           <div key={index}>
             {currentIndex === index && (
-              <div
-                style={{
-                  position: "absolute",
-                  left: `${left}px`,
-                  top: `${customTop}px`,
-                  zIndex: 9999,
-                  minWidth: `${50 * scale}px`,
-                  maxWidth: `${600 * scale}px`,
-                  width: `${textareaWidth}px`,
-                }}
-              >
-                <div className="flex flex-row items-center bg-white gap-2 h-[48px] min-w-[520px] rounded-2xl shadow-[0_2px_4px_0_rgba(255,192,196,1)] px-4  ">
-                  <div className="flex h-full items-center justify-center w-20">
-                    <div className="bg-black rounded-full h-7 w-7"></div>
-                    <IconButton
-                      icon="keyboard_arrow_down"
-                      size={6}
-                      scale={1}
-                      color="#1C1B1F"
-                    />
-                  </div>
-                  <div className="h-full w-[2px] bg-[#FFC0C4]" />
-                  <div className="flex h-full items-center justify-center w-20">
-                    <IconButton
-                      icon="match_case"
-                      color="#1C1B1F"
-                    />
-                    <IconButton
-                      icon="keyboard_arrow_down"
-                      size={6}
-                      scale={1}
-                      color="#1C1B1F"
-                    />
-                  </div>
-                  <div className="h-full w-[2px] bg-[#FFC0C4]" />
-                  <div className="flex h-full items-center justify-center w-[108px] gap-3">
-                    <IconButton
-                      icon="check_indeterminate_small"
-                      size={6}
-                      scale={1}
-                      color="#1C1B1F"
-                    />
-                    <p>text</p>
-                    <IconButton
-                      icon="add"
-                      size={6}
-                      scale={1}
-                      color="#1C1B1F"
-                    />
-                  </div>
-                  <div className="h-full w-[2px] bg-[#FFC0C4]" />
-                  <div className="flex h-full items-center justify-center">
-                    <IconButton
-                      icon="format_bold"
-                      color="#1C1B1F"
-                      scale={1.6}
-                      thin={true}
-                    />
-                    <IconButton
-                      icon="format_italic"
-                      color="#1C1B1F"
-                      scale={1.6}
-                      thin={true}
-                    />
-                    <IconButton
-                      icon="format_underlined"
-                      color="#1C1B1F"
-                      scale={1.6}
-                      thin={true}
-                    />
-                    <IconButton
-                      icon="strikethrough_s"
-                      color="#1C1B1F"
-                      scale={1.6}
-                      thin={true}
-                    />
-                  </div>
-                </div>
+              <div ref={settingsRef}>
+                <TextSettings
+                  left={left}
+                  customTop={customTop}
+                  scale={scale}
+                  textareaWidth={textareaWidth}
+                  textColor={text}
+                  setTextColor={(newColor) =>
+                    setTextStrokes((prev) =>
+                      prev.map((t, i) =>
+                        i === index ? { ...t, color: newColor } : t
+                      )
+                    )
+                  }
+                />
               </div>
             )}
             <textarea
-              key={index}
               value={text.value || ""}
               placeholder="Add text"
               style={{
                 position: "absolute",
                 left: `${left}px`,
                 top: `${top}px`,
+                color: `${text.color}`,
                 fontSize: `${20 * scale}px`,
                 height: "2em",
                 overflow: "hidden",
@@ -178,7 +131,7 @@ function AutoResizeTextAreas({ textStrokes, setTextStrokes, viewport }: Props) {
                 display: "flex",
                 justifyContent: "center",
                 padding: `${6 * scale}px ${4 * scale}px ${2 * scale}px ${4 * scale}px`,
-                zIndex: 9999,
+                zIndex: 100,
                 outline: "none",
                 minWidth: `${50 * scale}px`,
                 maxWidth: `${600 * scale}px`,
@@ -186,33 +139,36 @@ function AutoResizeTextAreas({ textStrokes, setTextStrokes, viewport }: Props) {
                 transformOrigin: "top left",
               }}
               onChange={(e) => {
-                const target = e.target as HTMLTextAreaElement;
-                const newValue = target.value;
+                const newValue = e.target.value;
                 setTextStrokes((prev) =>
                   prev.map((t, i) =>
                     i === index ? { ...t, value: newValue } : t
                   )
                 );
-                updateSize(target);
+                updateSize(e.target);
               }}
               onFocus={(e) => {
-                const target = e.target as HTMLTextAreaElement;
-                target.style.outline = "2px solid red";
-                target.style.borderColor = "red";
-                updateSize(target);
+                e.target.style.outline = "2px solid red";
+                e.target.style.borderColor = "red";
+                updateSize(e.target);
                 setCurrentIndex(index);
               }}
               onBlur={(e) => {
-                const target = e.target as HTMLTextAreaElement;
-                target.style.outline = "none";
-
-                const value = target.value.trim();
+                e.target.style.outline = "none";
+                const value = e.target.value.trim();
                 setTextStrokes((prev) =>
                   prev.map((t, i) => (i === index ? { ...t, value } : t))
                 );
-
-                updateSize(target);
-                setCurrentIndex(null);
+                updateSize(e.target);
+                setTimeout(() => {
+                  if (
+                    !settingsRef.current?.contains(
+                      document.activeElement as Node
+                    )
+                  ) {
+                    setCurrentIndex(null);
+                  }
+                }, 50);
               }}
               ref={(el) => el && updateSize(el)}
             />

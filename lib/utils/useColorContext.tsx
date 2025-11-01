@@ -1,8 +1,10 @@
 import { createContext, useContext, useState } from "react";
 
 type ColorContextType = {
-  color: string;
-  setColor: (p: string) => void;
+  penColor: string;
+  setPenColor: (p: string) => void;
+  textColor: string;
+  setTextColor: (p: string) => void;
   scale: number;
   setScale: (p: number) => void;
 };
@@ -10,10 +12,20 @@ type ColorContextType = {
 const ColorContext = createContext<ColorContextType | undefined>(undefined);
 
 export function ColorProvider({ children }: { children: React.ReactNode }) {
-  const [color, setColor] = useState("#000");
+  const [penColor, setPenColor] = useState("#000");
+  const [textColor, setTextColor] = useState("#000");
   const [scale, setScale] = useState(1);
   return (
-    <ColorContext.Provider value={{ color, setColor, scale, setScale }}>
+    <ColorContext.Provider
+      value={{
+        penColor,
+        setPenColor,
+        textColor,
+        setTextColor,
+        scale,
+        setScale,
+      }}
+    >
       {children}
     </ColorContext.Provider>
   );

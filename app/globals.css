@@ -11,11 +11,6 @@
   border-radius: 16px;
   box-shadow: 0 2px 4px 0 rgba(255, 192, 196, 1);
   position: absolute;
-  bottom: 200px;
-  left: 50%;
-  right: 50%;
-  translate: -50%;
-  margin-left: 300px;
 }
 
 .color-picker-container .react-colorful {

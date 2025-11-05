@@ -10,7 +10,8 @@ import {
   useState,
 } from "react";
 import dynamic from "next/dynamic";
-const AutoResizeTextAreas = dynamic(() => import("./textarea/page"), {
+import { useFont } from "@/lib/utils/useFontContext";
+const TextArea = dynamic(() => import("./textarea/page"), {
   ssr: false,
 });
 export type Point = {
@@ -27,8 +28,9 @@ export type Stroke = {
 
 export type TextStroke = {
   color: string;
-  fontSize?: number;
-  value: string | undefined;
+  font: string;
+  fontSize: number;
+  value: string;
   points: Point[];
 };
 
@@ -76,9 +78,9 @@ export default function Canva(props: {
     return [];
   });
 
-  console.log(textStrokes);
-
   const [currentStroke, setCurrentStroke] = useState<Point[]>([]);
+
+  const { font, fontSize } = useFont();
 
   const panningCursorStyle =
     position.isTracking && props.tool == "other" ? "cursor-grab" : "";
@@ -238,11 +240,13 @@ export default function Canva(props: {
         {
           value: "",
           color: String(color.textColor),
+          font: font ?? "",
+          fontSize: fontSize,
           points: [{ x: pos.x, y: pos.y }],
         },
       ]);
     },
-    [color.textColor]
+    [color.textColor, font, fontSize]
   );
 
   return (
@@ -307,7 +311,7 @@ export default function Canva(props: {
         }}
       />
       {textStrokes && (
-        <AutoResizeTextAreas
+        <TextArea
           textStrokes={textStrokes}
           setTextStrokes={setTextStrokes}
           viewport={viewportTransformRef.current}

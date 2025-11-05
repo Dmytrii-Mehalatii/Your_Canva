@@ -8,6 +8,7 @@ import ToolBar from "@/components/ToolBar";
 import Cursor from "@/components/Cursor";
 import RubberToolbar from "@/components/RubberToolbar";
 import Image from "next/image";
+import { FontProvider } from "@/lib/utils/useFontContext";
 
 export default function Home() {
   const [draw, setDraw] = useState(false);
@@ -25,63 +26,65 @@ export default function Home() {
   const [mapSrc, setMapSrc] = useState<string | null>(null);
   return (
     <ColorProvider>
-      {showCustom && (
-        <Cursor
-          size={brushSize}
-          draw={draw}
-        />
-      )}
-
-      {drawIn && (
-        <PenToolbar
-          brushSize={brushSize}
-          setBrushSize={setBrushSize}
-        />
-      )}
-
-      {rabOut && (
-        <RubberToolbar
-          brushSize={brushSize}
-          setBrushSize={setBrushSize}
-          setClearAll={setClearAll}
-        />
-      )}
-
-      {mapSrc && (
-        <div className="absolute top-4 right-4 rounded-lg overflow-hidden bg-white shadow-[0_2px_4px_0_rgba(255,192,196,1)]">
-          <Image
-            src={`${mapSrc}`}
-            alt="whiteboard map"
-            width={300}
-            height={160}
-            className=" object-contain"
+      <FontProvider>
+        {showCustom && (
+          <Cursor
+            size={brushSize}
+            draw={draw}
           />
-        </div>
-      )}
+        )}
 
-      <ToolBar
-        draw={draw}
-        setDraw={setDraw}
-        drawIn={drawIn}
-        setDrawIn={setDrawIn}
-        rabOut={rabOut}
-        setRabOut={setRabOut}
-        tool={tool}
-        setTool={setTool}
-      />
+        {drawIn && (
+          <PenToolbar
+            brushSize={brushSize}
+            setBrushSize={setBrushSize}
+          />
+        )}
 
-      <Canva
-        draw={draw}
-        brushSize={brushSize}
-        tool={tool}
-        setDrawIn={setDrawIn}
-        setRabOut={setRabOut}
-        showCustom={showCustom}
-        setShowCustom={setShowCustom}
-        clearAll={clearAll}
-        setClearAll={setClearAll}
-        setMapSrc={setMapSrc}
-      />
+        {rabOut && (
+          <RubberToolbar
+            brushSize={brushSize}
+            setBrushSize={setBrushSize}
+            setClearAll={setClearAll}
+          />
+        )}
+
+        {mapSrc && (
+          <div className="absolute top-4 right-4 rounded-lg overflow-hidden bg-white shadow-[0_2px_4px_0_rgba(255,192,196,1)]">
+            <Image
+              src={`${mapSrc}`}
+              alt="whiteboard map"
+              width={300}
+              height={160}
+              className=" object-contain"
+            />
+          </div>
+        )}
+
+        <ToolBar
+          draw={draw}
+          setDraw={setDraw}
+          drawIn={drawIn}
+          setDrawIn={setDrawIn}
+          rabOut={rabOut}
+          setRabOut={setRabOut}
+          tool={tool}
+          setTool={setTool}
+        />
+
+        <Canva
+          draw={draw}
+          brushSize={brushSize}
+          tool={tool}
+          setDrawIn={setDrawIn}
+          setRabOut={setRabOut}
+          showCustom={showCustom}
+          setShowCustom={setShowCustom}
+          clearAll={clearAll}
+          setClearAll={setClearAll}
+          setMapSrc={setMapSrc}
+        />
+      </FontProvider>
     </ColorProvider>
   );
 }

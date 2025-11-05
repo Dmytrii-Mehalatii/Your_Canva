@@ -1,4 +1,11 @@
+@import url("https://fonts.googleapis.com/css2?family=Chilanka&family=Crafty+Girls&family=Judson:ital,wght@0,400;0,700;1,400&display=swap");
 @import "tailwindcss";
+
+@theme {
+  --font-judson: "Judson", sans-serif;
+  --font-chilanka: "Chilanka", sans-serif;
+  --font-crafty: "Crafty Girls", sans-serif;
+}
 
 .color-picker-container {
   width: 246px;

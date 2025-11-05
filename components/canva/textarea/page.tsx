@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import TextSettings from "./textSettings/page";
+import { useFont } from "@/lib/utils/useFontContext";
 
 type Point = {
   x: number;
@@ -11,6 +12,8 @@ type Point = {
 type TextStroke = {
   value?: string;
   color: string;
+  font: string;
+  fontSize: number;
   points: Point[];
 };
 
@@ -20,7 +23,11 @@ interface Props {
   viewport?: { x: number; y: number; scale: number };
 }
 
-function AutoResizeTextAreas({ textStrokes, setTextStrokes, viewport }: Props) {
+export default function TextArea({
+  textStrokes,
+  setTextStrokes,
+  viewport,
+}: Props) {
   const measurerRef = useRef<HTMLSpanElement | null>(null);
 
   const [currentIndex, setCurrentIndex] = useState<number | null>(null);
@@ -29,6 +36,8 @@ function AutoResizeTextAreas({ textStrokes, setTextStrokes, viewport }: Props) {
   const [textareaWidth, setTextareaWidth] = useState<number | null>(null);
 
   const settingsRef = useRef<HTMLElement | null>(null);
+
+  const { font, fontSize, setFontSize } = useFont();
 
   useEffect(() => {
     const handleClick = (e: MouseEvent) => {
@@ -43,6 +52,22 @@ function AutoResizeTextAreas({ textStrokes, setTextStrokes, viewport }: Props) {
     document.addEventListener("mousedown", handleClick);
     return () => document.removeEventListener("mousedown", handleClick);
   }, []);
+
+  useEffect(() => {
+    if (currentIndex !== null) {
+      setTextStrokes((prev) =>
+        prev.map((t, i) => (i === currentIndex ? { ...t, font } : t))
+      );
+    }
+  }, [font]);
+
+  useEffect(() => {
+    if (currentIndex !== null) {
+      setTextStrokes((prev) =>
+        prev.map((t, i) => (i === currentIndex ? { ...t, fontSize } : t))
+      );
+    }
+  }, [fontSize]);
 
   useEffect(() => {
     const measurer = document.createElement("div");
@@ -63,11 +88,17 @@ function AutoResizeTextAreas({ textStrokes, setTextStrokes, viewport }: Props) {
     const measurer = measurerRef.current;
 
     measurer.style.fontSize = input.style.fontSize;
+    measurer.style.fontFamily = input.style.fontFamily;
     measurer.textContent = input.value || input.placeholder || "";
 
     input.style.width = measurer.offsetWidth + 12 + "px";
     setTextareaWidth(measurer.offsetWidth + 12);
 
+    updateHight(input);
+  }
+
+  function updateHight(input: HTMLTextAreaElement | null) {
+    if (!input || !measurerRef.current) return;
     input.style.height = "2em";
     input.style.height =
       Math.min(
@@ -106,6 +137,8 @@ function AutoResizeTextAreas({ textStrokes, setTextStrokes, viewport }: Props) {
                   scale={scale}
                   textareaWidth={textareaWidth}
                   textColor={text}
+                  textSize={text.fontSize}
+                  setTextSize={setFontSize}
                   setTextColor={(newColor) =>
                     setTextStrokes((prev) =>
                       prev.map((t, i) =>
@@ -124,7 +157,8 @@ function AutoResizeTextAreas({ textStrokes, setTextStrokes, viewport }: Props) {
                 left: `${left}px`,
                 top: `${top}px`,
                 color: `${text.color}`,
-                fontSize: `${20 * scale}px`,
+                fontFamily: text.font,
+                fontSize: `${text.fontSize * scale}px`,
                 height: "2em",
                 overflow: "hidden",
                 resize: "none",
@@ -134,7 +168,7 @@ function AutoResizeTextAreas({ textStrokes, setTextStrokes, viewport }: Props) {
                 zIndex: 100,
                 outline: "none",
                 minWidth: `${50 * scale}px`,
-                maxWidth: `${600 * scale}px`,
+                maxWidth: `${800 * scale}px`,
                 wordBreak: "break-word",
                 transformOrigin: "top left",
               }}
@@ -152,6 +186,7 @@ function AutoResizeTextAreas({ textStrokes, setTextStrokes, viewport }: Props) {
                 e.target.style.borderColor = "red";
                 updateSize(e.target);
                 setCurrentIndex(index);
+                setFontSize(text.fontSize);
               }}
               onBlur={(e) => {
                 e.target.style.outline = "none";
@@ -170,7 +205,7 @@ function AutoResizeTextAreas({ textStrokes, setTextStrokes, viewport }: Props) {
                   }
                 }, 50);
               }}
-              ref={(el) => el && updateSize(el)}
+              ref={(el) => el && updateHight(el)}
             />
           </div>
         );
@@ -178,5 +213,3 @@ function AutoResizeTextAreas({ textStrokes, setTextStrokes, viewport }: Props) {
     </>
   );
 }
-
-export default AutoResizeTextAreas;

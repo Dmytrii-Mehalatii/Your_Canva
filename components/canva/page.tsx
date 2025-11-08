@@ -213,6 +213,8 @@ export default function Canva(props: {
     }
     if (textStrokes.length > 0) {
       localStorage.setItem("textStrokes", JSON.stringify(textStrokes));
+    } else {
+      localStorage.removeItem("textStrokes");
     }
   }, [strokes, textStrokes]);
 
@@ -273,6 +275,9 @@ export default function Canva(props: {
             previousViewPosition.current = { x: e.clientX, y: e.clientY };
           }
 
+          props.setDrawIn(false);
+          props.setRabOut(false);
+
           const pos = getPos(e);
           if (!pos) return;
           if (position.isTracking) {
@@ -283,7 +288,6 @@ export default function Canva(props: {
           if (props.tool === "other" && isDraggingRef.current) {
             getNewViewportPosition(e);
           }
-
           const pos = getPos(e);
           if (!pos) return;
           if (position.isTracking) {

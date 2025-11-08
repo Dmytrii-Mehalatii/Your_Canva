@@ -10,8 +10,11 @@ export default function TextSettings(props: {
   left: number;
   customTop: number | undefined;
   scale: number;
+  index: number;
+  textStrokes: any;
+  setTextStrokes: (p: any) => void;
   textareaWidth: number | null;
-  textColor: any;
+  textColor: { color: string };
   setTextColor: (p: string) => void;
   textSize: number;
   setTextSize: (p: number) => void;
@@ -20,45 +23,36 @@ export default function TextSettings(props: {
   const [openFontPicker, setOpenFontPicker] = useState<boolean>(false);
 
   const { fontSize, setFontSize } = useFont();
-  console.log(props.textareaWidth);
 
   return (
     <div
       style={{
         position: "absolute",
-        left: `${props.left}px`,
-        top: `${props.customTop}px`,
+        left: `50%`,
+        top: `40px`,
         zIndex: 9999,
         minWidth: `${50 * props.scale}px`,
         maxWidth: `${800 * props.scale}px`,
-        width: `${props.textareaWidth}px`,
+        width: `1000px`,
         display: `flex`,
         justifyContent: "center",
+        translate: `-50%`,
       }}
     >
       {openColorPicker && (
         <ColorPicker
-          bottom={0}
           translate="30"
-          marginBottom={68}
-          width={props.textareaWidth}
           type="text"
+          marginTop={68}
           onChangeColor={(newColor) => props.setTextColor?.(newColor)}
         />
       )}
 
-      {openFontPicker && (
-        <FontPicker
-          bottom={0}
-          translate="40"
-          marginBottom={68}
-          width={props.textareaWidth}
-        />
-      )}
-      <div className="flex flex-row items-center bg-white gap-2 h-[48px] min-w-[520px] max-w-[520px] rounded-2xl shadow-[0_2px_4px_0_rgba(255,192,196,1)] px-4  ">
+      {openFontPicker && <FontPicker translate="45" />}
+      <div className="flex flex-row items-center bg-white gap-2 h-[48px] min-w-[400px] max-w-[400px] rounded-2xl shadow-[0_2px_4px_0_rgba(255,192,196,1)] px-4  ">
         <div className="flex h-full items-center justify-center w-20">
           <div
-            className="rounded-full h-7 w-7"
+            className="rounded-full h-7 w-7 border-[1px] border-gray-200"
             style={{ background: `${props.textColor.color}` }}
           ></div>
           {openColorPicker ? (
@@ -150,32 +144,18 @@ export default function TextSettings(props: {
           />
         </div>
         <div className="h-full w-[2px] bg-[#FFC0C4]" />
-        <div className="flex h-full items-center justify-center">
-          <IconButton
-            icon="format_bold"
-            color="#1C1B1F"
-            scale={1.6}
-            thin={true}
-          />
-          <IconButton
-            icon="format_italic"
-            color="#1C1B1F"
-            scale={1.6}
-            thin={true}
-          />
-          <IconButton
-            icon="format_underlined"
-            color="#1C1B1F"
-            scale={1.6}
-            thin={true}
-          />
-          <IconButton
-            icon="strikethrough_s"
-            color="#1C1B1F"
-            scale={1.6}
-            thin={true}
-          />
-        </div>
+        <IconButton
+          icon="delete"
+          color="#1C1B1F"
+          scale={1.6}
+          thin={true}
+          onClick={() => {
+            const newArr = props.textStrokes.filter(
+              (_: any, i: number) => i !== props.index
+            );
+            props.setTextStrokes(newArr);
+          }}
+        />
       </div>
     </div>
   );

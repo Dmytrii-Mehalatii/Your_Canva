@@ -7,9 +7,11 @@ import IconButton from "./IconButton";
 export default function ColorPicker(props: {
   type: "stroke" | "text";
   bottom?: number;
-  width: number | null;
+  width?: number | null;
+  left?: number;
+  marginLeft?: number;
   translate?: string;
-  marginBottom?: number;
+  marginTop?: number;
   onChangeColor?: (p: string) => void;
 }) {
   const { penColor, setPenColor, textColor, setTextColor } = useColor();
@@ -41,8 +43,10 @@ export default function ColorPicker(props: {
         className="color-picker-container"
         style={{
           bottom: `${props.bottom}px`,
+          left: `${props.left}%`,
           translate: `-${props.translate}%`,
-          marginBottom: `${props.marginBottom}px`,
+          marginTop: `${props.marginTop}px`,
+          marginLeft: `${props.marginLeft}px`,
           zIndex: "101",
         }}
       >

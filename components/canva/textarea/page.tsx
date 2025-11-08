@@ -35,7 +35,7 @@ export default function TextArea({
   const [textareaHight, setTextareaHight] = useState<number | null>(null);
   const [textareaWidth, setTextareaWidth] = useState<number | null>(null);
 
-  const settingsRef = useRef<HTMLElement | null>(null);
+  const settingsRef = useRef<HTMLDivElement | null>(null);
 
   const { font, fontSize, setFontSize } = useFont();
 
@@ -119,7 +119,6 @@ export default function TextArea({
         const scale = viewport?.scale ?? 1;
         const left = text.points[0].x * scale + (viewport?.x ?? 0);
         const top = text.points[0].y * scale + (viewport?.y ?? 0);
-
         let customTop;
         if (top >= 50 && textareaHight) {
           customTop = top - 70;
@@ -134,6 +133,9 @@ export default function TextArea({
                 <TextSettings
                   left={left}
                   customTop={customTop}
+                  index={index}
+                  setTextStrokes={setTextStrokes}
+                  textStrokes={textStrokes}
                   scale={scale}
                   textareaWidth={textareaWidth}
                   textColor={text}
@@ -199,13 +201,16 @@ export default function TextArea({
                   if (
                     !settingsRef.current?.contains(
                       document.activeElement as Node
-                    )
+                    ) &&
+                    !document.activeElement?.matches("textarea")
                   ) {
                     setCurrentIndex(null);
                   }
                 }, 50);
               }}
-              ref={(el) => el && updateHight(el)}
+              ref={(el) => {
+                if (el) updateSize(el);
+              }}
             />
           </div>
         );

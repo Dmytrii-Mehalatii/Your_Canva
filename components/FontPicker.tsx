@@ -1,11 +1,6 @@
 import { useFont } from "@/lib/utils/useFontContext";
 
-export default function FontPicker(props: {
-  bottom?: number;
-  translate?: string;
-  marginBottom?: number;
-  width: number | null;
-}) {
+export default function FontPicker(props: { translate?: string }) {
   const font = useFont();
 
   return (
@@ -13,9 +8,8 @@ export default function FontPicker(props: {
       <div
         className=" absolute flex flex-col items-center justify-center gap-4 text-xl bg-white h-[196px] w-[160px] rounded-2xl shadow-[0_2px_4px_0_rgba(255,192,196,1)] px-4 "
         style={{
-          bottom: `${props.bottom}px`,
           translate: `${props.translate}%`,
-          marginBottom: `${props.marginBottom}px`,
+          marginTop: `68px`,
           zIndex: "101",
         }}
       >

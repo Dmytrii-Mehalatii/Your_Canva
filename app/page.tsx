@@ -9,11 +9,13 @@ import Cursor from "@/components/Cursor";
 import RubberToolbar from "@/components/RubberToolbar";
 import Image from "next/image";
 import { FontProvider } from "@/lib/utils/useFontContext";
+import StickerBar from "@/components/StickerToolbar";
 
 export default function Home() {
   const [draw, setDraw] = useState(false);
   const [drawIn, setDrawIn] = useState(false);
   const [rabOut, setRabOut] = useState(false);
+  const [stickerBar, setStickerBar] = useState(true);
   const [brushSize, setBrushSize] = useState<number>(12);
   const [tool, setTool] = useState<"pen" | "rubber" | "text" | "other">(
     "other"
@@ -49,6 +51,8 @@ export default function Home() {
           />
         )}
 
+        {stickerBar && <StickerBar />}
+
         {mapSrc && (
           <div className="absolute top-4 right-4 rounded-lg overflow-hidden bg-white shadow-[0_2px_4px_0_rgba(255,192,196,1)]">
             <Image
@@ -68,6 +72,8 @@ export default function Home() {
           setDrawIn={setDrawIn}
           rabOut={rabOut}
           setRabOut={setRabOut}
+          stickerBar={stickerBar}
+          setStickerBar={setStickerBar}
           tool={tool}
           setTool={setTool}
         />

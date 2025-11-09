@@ -12,6 +12,8 @@ export default function ToolBar(props: {
   setRabOut: (p: boolean) => void;
   tool: "pen" | "rubber" | "text" | "other";
   setTool: (p: "pen" | "rubber" | "text" | "other") => void;
+  stickerBar: boolean;
+  setStickerBar: (p: boolean) => void;
 }) {
   const { penColor } = useColor();
   return (
@@ -25,6 +27,7 @@ export default function ToolBar(props: {
           props.setRabOut(false);
           props.setDrawIn(false);
           props.setTool("other");
+          props.setStickerBar(false);
         }}
       />
 
@@ -38,6 +41,7 @@ export default function ToolBar(props: {
             props.setDrawIn(!props.drawIn);
             props.setRabOut(false);
             props.setTool("pen");
+            props.setStickerBar(false);
           }}
         >
           <BlackPencil
@@ -55,6 +59,7 @@ export default function ToolBar(props: {
             props.setDraw(true);
             props.setDrawIn(false);
             props.setTool("rubber");
+            props.setStickerBar(false);
           }}
         >
           <BlackRubber
@@ -88,6 +93,7 @@ export default function ToolBar(props: {
           props.setDraw(false);
           props.setRabOut(false);
           props.setDrawIn(false);
+          props.setStickerBar(false);
           props.setTool("text");
         }}
       />
@@ -96,6 +102,13 @@ export default function ToolBar(props: {
         icon="add_reaction"
         color="#D7000F"
         bigBox={true}
+        onClick={() => {
+          props.setStickerBar(!props.stickerBar);
+          props.setDraw(false);
+          props.setRabOut(false);
+          props.setDrawIn(false);
+          props.setTool("other");
+        }}
       />
     </div>
   );

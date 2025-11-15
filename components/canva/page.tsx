@@ -22,7 +22,7 @@ export type Point = {
 export type Stroke = {
   penColor: string;
   width: number;
-  tool: "pen" | "rubber" | "other" | "text";
+  tool: "pen" | "rubber" | "sticker" | "other" | "text";
   points: Point[];
 };
 
@@ -34,17 +34,26 @@ export type TextStroke = {
   points: Point[];
 };
 
+export type StickerStroke = {
+  src: string;
+  width: number;
+  height: number;
+  points: Point[];
+};
+
 export default function Canva(props: {
   draw: boolean;
   setDrawIn: (p: boolean) => void;
   setRabOut: (p: boolean) => void;
   brushSize: number;
-  tool: "pen" | "rubber" | "text" | "other";
+  tool: "pen" | "rubber" | "text" | "sticker" | "other";
   showCustom: boolean;
   setShowCustom: (p: boolean) => void;
   clearAll: boolean;
   setClearAll: (p: boolean) => void;
-  setMapSrc: (src: string | null) => void;
+  stickerBar: boolean;
+  choosenSticker: string;
+  stickerSize: number[];
 }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const positionRef = useRef<{ x: number; y: number } | null>(null);
@@ -55,12 +64,18 @@ export default function Canva(props: {
     y: 0,
     scale: 1,
   });
+
   const isDraggingRef = useRef(false);
 
   const position = useCursor();
   const color = useColor();
+  const { font, fontSize } = useFont();
+
   const [canvasHeight, setCanvasHeight] = useState<number>(1000);
   const [canvasWidth, setCanvasWidth] = useState<number>(1000);
+
+  const [currentStroke, setCurrentStroke] = useState<Point[]>([]);
+  const [currentStickerStroke, setCurrentstickerStroke] = useState<Point[]>([]);
 
   const [strokes, setStrokes] = useState<Stroke[]>(() => {
     if (typeof window !== "undefined") {
@@ -78,9 +93,13 @@ export default function Canva(props: {
     return [];
   });
 
-  const [currentStroke, setCurrentStroke] = useState<Point[]>([]);
-
-  const { font, fontSize } = useFont();
+  const [stickerStrokes, setStickerStrokes] = useState<StickerStroke[]>(() => {
+    if (typeof window !== "undefined") {
+      const savedSticked = localStorage.getItem("stickerStrokes");
+      if (savedSticked) return JSON.parse(savedSticked);
+    }
+    return [];
+  });
 
   const panningCursorStyle =
     position.isTracking && props.tool == "other" ? "cursor-grab" : "";
@@ -124,7 +143,9 @@ export default function Canva(props: {
     };
   };
 
-  const render = () => {
+  const render = (e: React.MouseEvent<HTMLCanvasElement, MouseEvent>) => {
+    const pos = getPos(e);
+    if (!pos) return;
     const canvas = canvasRef.current;
     const context = canvas?.getContext("2d");
     if (!context || !canvas) return;
@@ -135,6 +156,18 @@ export default function Canva(props: {
 
     context.setTransform(scale, 0, 0, scale, x, y);
     reRender();
+
+    if (props.tool == "sticker") {
+      const img = new Image();
+      img.src = `${props.choosenSticker}`;
+      context.drawImage(
+        img,
+        pos.x - 60,
+        pos.y - 20,
+        props.stickerSize[0],
+        props.stickerSize[1]
+      );
+    }
 
     if (currentStroke.length > 0) {
       context.lineWidth = props.brushSize;
@@ -181,7 +214,22 @@ export default function Canva(props: {
     }
 
     context.globalCompositeOperation = "source-over";
-  }, [strokes]);
+
+    for (const stickerStroke of stickerStrokes) {
+      const img = new Image();
+      img.src = `${stickerStroke.src}`;
+
+      stickerStroke.points.forEach((p) => {
+        context.drawImage(
+          img,
+          p.x,
+          p.y,
+          stickerStroke.width,
+          stickerStroke.height
+        );
+      });
+    }
+  }, [strokes, stickerStrokes]);
 
   useLayoutEffect(() => {
     const handleResize = () => {
@@ -216,7 +264,11 @@ export default function Canva(props: {
     } else {
       localStorage.removeItem("textStrokes");
     }
-  }, [strokes, textStrokes]);
+
+    if (stickerStrokes.length > 0) {
+      localStorage.setItem("stickerStrokes", JSON.stringify(stickerStrokes));
+    }
+  }, [strokes, textStrokes, stickerStrokes]);
 
   const getNewViewportPosition = (
     e: React.MouseEvent<HTMLCanvasElement, MouseEvent>
@@ -229,7 +281,7 @@ export default function Canva(props: {
     viewportTransformRef.current.x += dx;
     viewportTransformRef.current.y += dy;
 
-    render();
+    render(e);
   };
 
   const createInput = useCallback(
@@ -262,8 +314,7 @@ export default function Canva(props: {
         onMouseLeave={() => props.setShowCustom(false)}
         onWheel={(e) => {
           updateScale(e);
-
-          render();
+          render(e);
         }}
         onMouseDown={(e: React.MouseEvent<HTMLCanvasElement, MouseEvent>) => {
           if (props.tool === "text") {
@@ -283,20 +334,31 @@ export default function Canva(props: {
           if (position.isTracking) {
             setCurrentStroke([{ x: pos.x, y: pos.y }]);
           }
+
+          if (props.tool == "sticker") {
+            setCurrentstickerStroke(() => [{ x: pos.x - 60, y: pos.y - 20 }]);
+          }
         }}
         onMouseMove={(e: React.MouseEvent<HTMLCanvasElement, MouseEvent>) => {
           if (props.tool === "other" && isDraggingRef.current) {
             getNewViewportPosition(e);
           }
+
           const pos = getPos(e);
           if (!pos) return;
-          if (position.isTracking) {
+          if (
+            position.isTracking &&
+            (props.tool == "pen" || props.tool == "rubber")
+          ) {
             setCurrentStroke((prev) => [...prev, { x: pos.x, y: pos.y }]);
           }
-          render();
+          render(e);
         }}
         onMouseUp={() => {
-          if (currentStroke.length > 0 && props.tool !== "other") {
+          if (
+            currentStroke.length > 0 &&
+            (props.tool == "pen" || props.tool == "rubber")
+          ) {
             setStrokes((prev) => [
               ...prev,
               {
@@ -311,6 +373,18 @@ export default function Canva(props: {
           } else {
             setCurrentStroke([]);
             isDraggingRef.current = false;
+          }
+
+          if (props.tool == "sticker") {
+            setStickerStrokes((prev) => [
+              ...prev,
+              {
+                src: props.choosenSticker,
+                width: props.stickerSize[0],
+                height: props.stickerSize[1],
+                points: currentStickerStroke.map((p) => ({ ...p })),
+              },
+            ]);
           }
         }}
       />

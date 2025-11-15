@@ -10,8 +10,8 @@ export default function ToolBar(props: {
   setDrawIn: (p: boolean) => void;
   rabOut: boolean;
   setRabOut: (p: boolean) => void;
-  tool: "pen" | "rubber" | "text" | "other";
-  setTool: (p: "pen" | "rubber" | "text" | "other") => void;
+  tool: "pen" | "rubber" | "text" | "sticker" | "other";
+  setTool: (p: "pen" | "rubber" | "text" | "sticker" | "other") => void;
   stickerBar: boolean;
   setStickerBar: (p: boolean) => void;
 }) {
@@ -104,10 +104,10 @@ export default function ToolBar(props: {
         bigBox={true}
         onClick={() => {
           props.setStickerBar(!props.stickerBar);
+          props.setTool("sticker");
           props.setDraw(false);
           props.setRabOut(false);
           props.setDrawIn(false);
-          props.setTool("other");
         }}
       />
     </div>

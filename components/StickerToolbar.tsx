@@ -6,7 +6,7 @@ export default function StickerBar(props: {
   setStickerSize: (p: number[]) => void;
 }) {
   return (
-    <div className="w-60 h-60 border-[conic-gradient()]  bg-[conic-gradient(#ffecec_0deg_45deg,#fff7f7_45deg_90deg,#ffecec_90deg_135deg,#fff7f7_135deg_180deg,#ffecec_180deg_225deg,#fff7f7_225deg_270deg,#ffecec_270deg_315deg,#fff7f7_315deg_360deg)] rounded-full border-0 shadow-[0_2px_4px_0_rgba(255,192,196,1)] absolute left-1/2 -translate-x-1/2 ml-[240px] bottom-[132px]">
+    <div className="w-60 h-60 border-[conic-gradient()]  bg-[conic-gradient(#ffecec_0deg_45deg,#fff7f7_45deg_90deg,#ffecec_90deg_135deg,#fff7f7_135deg_180deg,#ffecec_180deg_225deg,#fff7f7_225deg_270deg,#ffecec_270deg_315deg,#fff7f7_315deg_360deg)] rounded-full border-0 shadow-[0_2px_4px_0_rgba(255,192,196,1)] absolute left-1/2 -translate-x-1/2 ml-[192px] bottom-[132px]">
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-14 h-14 bg-white border-1 border-red-300 rounded-full z-10"></div>
 
       <div className="absolute inset-0 flex items-center justify-center">

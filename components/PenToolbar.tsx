@@ -19,6 +19,7 @@ export default function PenToolbar(props: {
           left={50}
           translate="-50"
           marginLeft={180}
+          onChangeColor={(newColor) => setPenColor(newColor)}
         />
       )}
       <div className="flex flex-row items-center w-[688px] h-12 bg-white px-6 gap-4 shadow-[0_2px_4px_0_rgba(255,192,196,1)] rounded-2xl absolute left-[50%] right-[50%] translate-x-[-50%] bottom-[132px]">

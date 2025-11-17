@@ -5,20 +5,40 @@ import useEyeDropper from "use-eye-dropper";
 import IconButton from "./IconButton";
 
 export default function ColorPicker(props: {
-  type: "stroke" | "text";
+  type: "stroke" | "text" | "shape";
   bottom?: number;
   width?: number | null;
   left?: number;
+  right?: number;
   marginLeft?: number;
+  marginRight?: number;
   translate?: string;
   marginTop?: number;
   onChangeColor?: (p: string) => void;
 }) {
-  const { penColor, setPenColor, textColor, setTextColor } = useColor();
+  const {
+    penColor,
+    setPenColor,
+    textColor,
+    setTextColor,
+    shapeColor,
+    setShapeColor,
+  } = useColor();
   const { open, isSupported } = useEyeDropper();
 
-  const color = props.type === "stroke" ? penColor : textColor;
-  const setColor = props.type === "stroke" ? setPenColor : setTextColor;
+  const color =
+    props.type === "stroke"
+      ? penColor
+      : props.type === "text"
+        ? textColor
+        : shapeColor;
+
+  const setColor =
+    props.type === "stroke"
+      ? setPenColor
+      : props.type === "text"
+        ? setTextColor
+        : setShapeColor;
 
   const pickColor = useCallback(() => {
     const openPicker = async () => {
@@ -44,9 +64,11 @@ export default function ColorPicker(props: {
         style={{
           bottom: `${props.bottom}px`,
           left: `${props.left}%`,
+          right: `${props.right}%`,
           translate: `-${props.translate}%`,
           marginTop: `${props.marginTop}px`,
           marginLeft: `${props.marginLeft}px`,
+          marginRight: `${props.marginRight}px`,
           zIndex: "101",
         }}
       >

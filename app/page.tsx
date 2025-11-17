@@ -9,17 +9,19 @@ import Cursor from "@/components/Cursor";
 import RubberToolbar from "@/components/RubberToolbar";
 import { FontProvider } from "@/lib/utils/useFontContext";
 import StickerBar from "@/components/StickerToolbar";
+import ShapesToolbar from "@/components/ShapesToolbar";
 
 export default function Home() {
   const [draw, setDraw] = useState(false);
   const [drawIn, setDrawIn] = useState(false);
   const [rabOut, setRabOut] = useState(false);
   const [stickerBar, setStickerBar] = useState(false);
+  const [shapesBar, setShapesBar] = useState(false);
   const [choosenSticker, setChoosenSticker] = useState("");
   const [stickerSize, setStickerSize] = useState<number[]>([]);
   const [brushSize, setBrushSize] = useState<number>(12);
   const [tool, setTool] = useState<
-    "pen" | "rubber" | "text" | "sticker" | "other"
+    "pen" | "rubber" | "text" | "sticker" | "shape" | "other"
   >("other");
 
   const [showCustom, setShowCustom] = useState(true);
@@ -59,6 +61,8 @@ export default function Home() {
           />
         )}
 
+        {shapesBar && <ShapesToolbar />}
+
         <ToolBar
           draw={draw}
           setDraw={setDraw}
@@ -70,6 +74,8 @@ export default function Home() {
           setStickerBar={setStickerBar}
           tool={tool}
           setTool={setTool}
+          shapesBar={shapesBar}
+          setShapesBar={setShapesBar}
         />
 
         <Canva

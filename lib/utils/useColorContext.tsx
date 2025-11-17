@@ -5,6 +5,8 @@ type ColorContextType = {
   setPenColor: (p: string) => void;
   textColor: string;
   setTextColor: (p: string) => void;
+  shapeColor: string;
+  setShapeColor: (p: string) => void;
   scale: number;
   setScale: (p: number) => void;
 };
@@ -14,6 +16,7 @@ const ColorContext = createContext<ColorContextType | undefined>(undefined);
 export function ColorProvider({ children }: { children: React.ReactNode }) {
   const [penColor, setPenColor] = useState("#000");
   const [textColor, setTextColor] = useState("#000");
+  const [shapeColor, setShapeColor] = useState("#000");
   const [scale, setScale] = useState(1);
   return (
     <ColorContext.Provider
@@ -24,6 +27,8 @@ export function ColorProvider({ children }: { children: React.ReactNode }) {
         setTextColor,
         scale,
         setScale,
+        shapeColor,
+        setShapeColor,
       }}
     >
       {children}

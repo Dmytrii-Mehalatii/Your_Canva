@@ -11,6 +11,7 @@ import {
 } from "react";
 import dynamic from "next/dynamic";
 import { useFont } from "@/lib/utils/useFontContext";
+import AllShapes from "./shapes/page";
 const TextArea = dynamic(() => import("./textarea/page"), {
   ssr: false,
 });
@@ -22,7 +23,7 @@ export type Point = {
 export type Stroke = {
   penColor: string;
   width: number;
-  tool: "pen" | "rubber" | "sticker" | "other" | "text";
+  tool: "pen" | "rubber" | "sticker" | "shape" | "other" | "text";
   points: Point[];
 };
 
@@ -34,6 +35,15 @@ export type TextStroke = {
   points: Point[];
 };
 
+export type ShapeStroke = {
+  width: number;
+  height: number;
+  left: number;
+  top: number;
+  color: string;
+  points: ShapeBorder[];
+};
+
 export type StickerStroke = {
   src: string;
   width: number;
@@ -41,12 +51,17 @@ export type StickerStroke = {
   points: Point[];
 };
 
+export type ShapeBorder = {
+  startPoint: Point[];
+  endPoint: Point[];
+};
+
 export default function Canva(props: {
   draw: boolean;
   setDrawIn: (p: boolean) => void;
   setRabOut: (p: boolean) => void;
   brushSize: number;
-  tool: "pen" | "rubber" | "text" | "sticker" | "other";
+  tool: "pen" | "rubber" | "text" | "sticker" | "shape" | "other";
   showCustom: boolean;
   setShowCustom: (p: boolean) => void;
   clearAll: boolean;
@@ -77,6 +92,8 @@ export default function Canva(props: {
   const [currentStroke, setCurrentStroke] = useState<Point[]>([]);
   const [currentStickerStroke, setCurrentstickerStroke] = useState<Point[]>([]);
 
+  const [drawShapesBorder, setDrawShapesBorder] = useState(false);
+  const [shapeBorders, setShapeBorders] = useState<ShapeBorder[]>([]);
   const [strokes, setStrokes] = useState<Stroke[]>(() => {
     if (typeof window !== "undefined") {
       const saved = localStorage.getItem("strokes");
@@ -92,6 +109,16 @@ export default function Canva(props: {
     }
     return [];
   });
+
+  const [shapeStrokes, setShapeStrokes] = useState<ShapeStroke[]>(() => {
+    if (typeof window !== "undefined") {
+      const savedShape = localStorage.getItem("shapeStrokes");
+      if (savedShape) return JSON.parse(savedShape);
+    }
+    return [];
+  });
+
+  console.log(shapeStrokes);
 
   const [stickerStrokes, setStickerStrokes] = useState<StickerStroke[]>(() => {
     if (typeof window !== "undefined") {
@@ -190,6 +217,28 @@ export default function Canva(props: {
       }
     }
   };
+
+  let shapeLeft = 0;
+  let shapeTop = 0;
+  let shapeWidth = 0;
+  let shapeHeight = 0;
+  if (drawShapesBorder && shapeBorders.length > 0 && canvasRef.current) {
+    const canvasRect = canvasRef.current.getBoundingClientRect();
+    const sp = shapeBorders[0].startPoint[0];
+    const ep = shapeBorders[0].endPoint[0];
+    const minX = Math.min(sp.x, ep.x);
+    const minY = Math.min(sp.y, ep.y);
+    shapeLeft =
+      canvasRect.left +
+      minX * viewportTransformRef.current.scale +
+      viewportTransformRef.current.x;
+    shapeTop =
+      canvasRect.top +
+      minY * viewportTransformRef.current.scale +
+      viewportTransformRef.current.y;
+    shapeWidth = Math.abs(ep.x - sp.x) * viewportTransformRef.current.scale;
+    shapeHeight = Math.abs(ep.y - sp.y) * viewportTransformRef.current.scale;
+  }
 
   const reRender = useCallback(() => {
     const canvas = canvasRef.current;
@@ -305,6 +354,33 @@ export default function Canva(props: {
 
   return (
     <div>
+      {textStrokes && (
+        <TextArea
+          textStrokes={textStrokes}
+          setTextStrokes={setTextStrokes}
+          viewport={viewportTransformRef.current}
+        />
+      )}
+
+      {drawShapesBorder && shapeBorders.length > 0 && (
+        <div
+          className="absolute border-2 pointer-events-none"
+          style={{
+            left: `${shapeLeft}px`,
+            top: `${shapeTop}px`,
+            width: `${shapeWidth}px`,
+            height: `${shapeHeight}px`,
+            borderColor: `${color.shapeColor}`,
+          }}
+        ></div>
+      )}
+
+      {shapeStrokes.length > 0 && (
+        <AllShapes
+          shapeStrokes={shapeStrokes}
+          viewport={viewportTransformRef.current}
+        />
+      )}
       <canvas
         ref={canvasRef}
         height={canvasHeight}
@@ -317,8 +393,22 @@ export default function Canva(props: {
           render(e);
         }}
         onMouseDown={(e: React.MouseEvent<HTMLCanvasElement, MouseEvent>) => {
+          const pos = getPos(e);
+          if (!pos) return;
+
           if (props.tool === "text") {
             createInput(e);
+          }
+
+          if (props.tool === "shape") {
+            setDrawShapesBorder(true);
+
+            setShapeBorders([
+              {
+                startPoint: [{ x: pos.x, y: pos.y }],
+                endPoint: [{ x: pos.x, y: pos.y }],
+              },
+            ]);
           }
 
           if (props.tool == "other") {
@@ -329,8 +419,6 @@ export default function Canva(props: {
           props.setDrawIn(false);
           props.setRabOut(false);
 
-          const pos = getPos(e);
-          if (!pos) return;
           if (position.isTracking) {
             setCurrentStroke([{ x: pos.x, y: pos.y }]);
           }
@@ -351,6 +439,18 @@ export default function Canva(props: {
             (props.tool == "pen" || props.tool == "rubber")
           ) {
             setCurrentStroke((prev) => [...prev, { x: pos.x, y: pos.y }]);
+          }
+
+          if (props.tool === "shape" && drawShapesBorder) {
+            setShapeBorders((prev) => {
+              const last = prev[prev.length - 1];
+
+              const updatedLast = {
+                ...last,
+                endPoint: [{ x: pos.x, y: pos.y }],
+              };
+              return [updatedLast];
+            });
           }
           render(e);
         }}
@@ -375,6 +475,26 @@ export default function Canva(props: {
             isDraggingRef.current = false;
           }
 
+          if (props.tool === "shape") {
+            setDrawShapesBorder(false);
+            setShapeStrokes((prev) => [
+              ...prev,
+              {
+                color: color.shapeColor,
+                width: shapeWidth,
+                height: shapeHeight,
+                left: shapeLeft,
+                top: shapeTop,
+                points: [
+                  {
+                    startPoint: shapeBorders[0].startPoint,
+                    endPoint: shapeBorders[0].endPoint,
+                  },
+                ],
+              },
+            ]);
+          }
+
           if (props.tool == "sticker") {
             setStickerStrokes((prev) => [
               ...prev,
@@ -388,13 +508,6 @@ export default function Canva(props: {
           }
         }}
       />
-      {textStrokes && (
-        <TextArea
-          textStrokes={textStrokes}
-          setTextStrokes={setTextStrokes}
-          viewport={viewportTransformRef.current}
-        />
-      )}
     </div>
   );
 }

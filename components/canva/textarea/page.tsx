@@ -32,7 +32,6 @@ export default function TextArea({
 
   const [currentIndex, setCurrentIndex] = useState<number | null>(null);
 
-  const [textareaHight, setTextareaHight] = useState<number | null>(null);
   const [textareaWidth, setTextareaWidth] = useState<number | null>(null);
 
   const settingsRef = useRef<HTMLDivElement | null>(null);
@@ -105,12 +104,6 @@ export default function TextArea({
         input.scrollHeight,
         24 * parseFloat(getComputedStyle(input).lineHeight)
       ) + "px";
-    setTextareaHight(
-      Math.min(
-        input.scrollHeight,
-        24 * parseFloat(getComputedStyle(input).lineHeight)
-      )
-    );
   }
 
   return (
@@ -119,20 +112,12 @@ export default function TextArea({
         const scale = viewport?.scale ?? 1;
         const left = text.points[0].x * scale + (viewport?.x ?? 0);
         const top = text.points[0].y * scale + (viewport?.y ?? 0);
-        let customTop;
-        if (top >= 50 && textareaHight) {
-          customTop = top - 70;
-        } else if (textareaHight) {
-          customTop = top + textareaHight + 20;
-        }
 
         return (
           <div key={index}>
             {currentIndex === index && (
               <div ref={settingsRef}>
                 <TextSettings
-                  left={left}
-                  customTop={customTop}
                   index={index}
                   setTextStrokes={setTextStrokes}
                   textStrokes={textStrokes}

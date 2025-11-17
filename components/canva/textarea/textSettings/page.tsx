@@ -7,8 +7,6 @@ import { useFont } from "@/lib/utils/useFontContext";
 import { useState } from "react";
 
 export default function TextSettings(props: {
-  left: number;
-  customTop: number | undefined;
   scale: number;
   index: number;
   textStrokes: any;

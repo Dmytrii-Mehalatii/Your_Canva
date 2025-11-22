@@ -3,14 +3,15 @@
 import ColorPicker from "@/components/ColorPicker";
 import FontPicker from "@/components/FontPicker";
 import IconButton from "@/components/IconButton";
+import { TextStroke } from "@/lib/types/CanvasTypes";
 import { useFont } from "@/lib/utils/useFontContext";
 import { useState } from "react";
 
 export default function TextSettings(props: {
   scale: number;
   index: number;
-  textStrokes: any;
-  setTextStrokes: (p: any) => void;
+  textStrokes: TextStroke[];
+  setTextStrokes: (p: TextStroke[]) => void;
   textareaWidth: number | null;
   textColor: { color: string };
   setTextColor: (p: string) => void;
@@ -149,7 +150,7 @@ export default function TextSettings(props: {
           thin={true}
           onClick={() => {
             const newArr = props.textStrokes.filter(
-              (_: any, i: number) => i !== props.index
+              (_: TextStroke, i: number) => i !== props.index
             );
             props.setTextStrokes(newArr);
           }}

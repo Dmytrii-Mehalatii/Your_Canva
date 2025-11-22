@@ -11,55 +11,29 @@ import {
 } from "react";
 import dynamic from "next/dynamic";
 import { useFont } from "@/lib/utils/useFontContext";
-import AllShapes from "./shapes/page";
+import { useShape } from "@/lib/utils/useShapeContext";
+import StickerSettings from "./stickerSettings/page";
+import {
+  Point,
+  ShapeBorder,
+  ShapeStroke,
+  StickerStroke,
+  Stroke,
+  TextStroke,
+} from "@/lib/types/CanvasTypes";
 const TextArea = dynamic(() => import("./textarea/page"), {
   ssr: false,
 });
-export type Point = {
-  x: number;
-  y: number;
-};
 
-export type Stroke = {
-  penColor: string;
-  width: number;
-  tool: "pen" | "rubber" | "sticker" | "shape" | "other" | "text";
-  points: Point[];
-};
-
-export type TextStroke = {
-  color: string;
-  font: string;
-  fontSize: number;
-  value: string;
-  points: Point[];
-};
-
-export type ShapeStroke = {
-  width: number;
-  height: number;
-  left: number;
-  top: number;
-  color: string;
-  points: ShapeBorder[];
-};
-
-export type StickerStroke = {
-  src: string;
-  width: number;
-  height: number;
-  points: Point[];
-};
-
-export type ShapeBorder = {
-  startPoint: Point[];
-  endPoint: Point[];
-};
+const AllShapes = dynamic(() => import("./shapes/page"), {
+  ssr: false,
+});
 
 export default function Canva(props: {
   draw: boolean;
   setDrawIn: (p: boolean) => void;
   setRabOut: (p: boolean) => void;
+  setShapesBar: (p: boolean) => void;
   brushSize: number;
   tool: "pen" | "rubber" | "text" | "sticker" | "shape" | "other";
   showCustom: boolean;
@@ -85,6 +59,15 @@ export default function Canva(props: {
   const position = useCursor();
   const color = useColor();
   const { font, fontSize } = useFont();
+  const { type } = useShape();
+
+  let radius = "";
+  let rotate = "";
+  if (type == "circle") {
+    radius = "100%";
+  } else if (type == "rhombus") {
+    rotate = "45deg";
+  }
 
   const [canvasHeight, setCanvasHeight] = useState<number>(1000);
   const [canvasWidth, setCanvasWidth] = useState<number>(1000);
@@ -110,15 +93,11 @@ export default function Canva(props: {
     return [];
   });
 
-  const [shapeStrokes, setShapeStrokes] = useState<ShapeStroke[]>(() => {
-    if (typeof window !== "undefined") {
-      const savedShape = localStorage.getItem("shapeStrokes");
-      if (savedShape) return JSON.parse(savedShape);
-    }
-    return [];
-  });
+  const [shapeStrokes, setShapeStrokes] = useState<ShapeStroke[]>([]);
 
-  console.log(shapeStrokes);
+  const [selectedShapeIndex, setSelectedShapeIndex] = useState<number | null>(
+    null
+  );
 
   const [stickerStrokes, setStickerStrokes] = useState<StickerStroke[]>(() => {
     if (typeof window !== "undefined") {
@@ -127,6 +106,11 @@ export default function Canva(props: {
     }
     return [];
   });
+
+  const [selectedStickerIndex, setSelectedStickerIndex] = useState<
+    number | null
+  >(null);
+  console.log(selectedStickerIndex);
 
   const panningCursorStyle =
     position.isTracking && props.tool == "other" ? "cursor-grab" : "";
@@ -186,6 +170,7 @@ export default function Canva(props: {
 
     if (props.tool == "sticker") {
       const img = new Image();
+      context.globalAlpha = 0.5;
       img.src = `${props.choosenSticker}`;
       context.drawImage(
         img,
@@ -194,6 +179,7 @@ export default function Canva(props: {
         props.stickerSize[0],
         props.stickerSize[1]
       );
+      context.globalAlpha = 1.0;
     }
 
     if (currentStroke.length > 0) {
@@ -239,6 +225,60 @@ export default function Canva(props: {
     shapeWidth = Math.abs(ep.x - sp.x) * viewportTransformRef.current.scale;
     shapeHeight = Math.abs(ep.y - sp.y) * viewportTransformRef.current.scale;
   }
+
+  const hitTestShapes = (clientX: number, clientY: number) => {
+    for (let i = shapeStrokes.length - 1; i >= 0; i--) {
+      const s = shapeStrokes[i];
+      const left =
+        s.left * viewportTransformRef.current.scale +
+        (viewportTransformRef.current.x ?? 0);
+      const top =
+        s.top * viewportTransformRef.current.scale +
+        (viewportTransformRef.current.y ?? 0);
+      const w = s.width ?? 0;
+      const h = s.height ?? 0;
+
+      if (
+        clientX >= left &&
+        clientX <= left + w &&
+        clientY >= top &&
+        clientY <= top + h
+      ) {
+        return i;
+      }
+    }
+    return -1;
+  };
+
+  const hitTestStickers = (clientX: number, clientY: number) => {
+    if (!canvasRef.current) return -1;
+
+    const rect = canvasRef.current.getBoundingClientRect();
+    const scale = viewportTransformRef.current.scale;
+    const tx = viewportTransformRef.current.x;
+    const ty = viewportTransformRef.current.y;
+
+    for (let i = stickerStrokes.length - 1; i >= 0; i--) {
+      const s = stickerStrokes[i];
+
+      const left = rect.left + (s.left * scale + tx);
+      const top = rect.top + (s.top * scale + ty);
+
+      const w = s.width * scale;
+      const h = s.height * scale;
+
+      if (
+        clientX >= left &&
+        clientX <= left + w &&
+        clientY >= top &&
+        clientY <= top + h
+      ) {
+        return i;
+      }
+    }
+
+    return -1;
+  };
 
   const reRender = useCallback(() => {
     const canvas = canvasRef.current;
@@ -290,7 +330,6 @@ export default function Canva(props: {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  //For clearing the canvas
   useEffect(() => {
     if (!props.clearAll) return;
 
@@ -304,6 +343,14 @@ export default function Canva(props: {
     props.setClearAll(false);
   }, [props.clearAll, canvasHeight, canvasWidth]);
 
+  //Had to get my shapes using useEffect cause I had srr error :(
+  useEffect(() => {
+    const saved = localStorage.getItem("shapeStrokes");
+    if (saved && saved.length > 0) {
+      setShapeStrokes(JSON.parse(saved));
+    }
+  }, []);
+
   useEffect(() => {
     if (strokes.length > 0) {
       localStorage.setItem("strokes", JSON.stringify(strokes));
@@ -314,10 +361,16 @@ export default function Canva(props: {
       localStorage.removeItem("textStrokes");
     }
 
+    if (shapeStrokes.length > 0) {
+      localStorage.setItem("shapeStrokes", JSON.stringify(shapeStrokes));
+    } else {
+      localStorage.removeItem("shapeStrokes");
+    }
+
     if (stickerStrokes.length > 0) {
       localStorage.setItem("stickerStrokes", JSON.stringify(stickerStrokes));
     }
-  }, [strokes, textStrokes, stickerStrokes]);
+  }, [strokes, textStrokes, shapeStrokes, stickerStrokes]);
 
   const getNewViewportPosition = (
     e: React.MouseEvent<HTMLCanvasElement, MouseEvent>
@@ -362,6 +415,190 @@ export default function Canva(props: {
         />
       )}
 
+      {shapeStrokes.length > 0 && (
+        <AllShapes
+          shapeStrokes={shapeStrokes}
+          setShapeStrokes={setShapeStrokes}
+          viewport={viewportTransformRef.current}
+          shapeIndex={selectedShapeIndex}
+        />
+      )}
+
+      {selectedStickerIndex !== null && (
+        <StickerSettings
+          selectedStickerIndex={selectedStickerIndex}
+          setSelectedStickerIndex={setSelectedStickerIndex}
+          stickerStrokes={stickerStrokes}
+          setStickerStrokes={setStickerStrokes}
+          viewport={viewportTransformRef.current}
+        />
+      )}
+
+      <div className="relative">
+        <canvas
+          ref={canvasRef}
+          height={canvasHeight}
+          width={canvasWidth}
+          className={styles}
+          onMouseEnter={() => props.setShowCustom(true)}
+          onMouseLeave={() => props.setShowCustom(false)}
+          onWheel={(e) => {
+            updateScale(e);
+            render(e);
+          }}
+          onMouseDown={(e: React.MouseEvent<HTMLCanvasElement, MouseEvent>) => {
+            const pos = getPos(e);
+            if (!pos) return;
+
+            const clickedIndex = hitTestShapes(e.clientX, e.clientY);
+            if (clickedIndex !== -1) {
+              setSelectedShapeIndex(clickedIndex);
+            } else {
+              setSelectedShapeIndex(null);
+            }
+
+            const clickedStickerIndex = hitTestStickers(e.clientX, e.clientY);
+            if (clickedStickerIndex !== -1) {
+              setSelectedStickerIndex(clickedStickerIndex);
+              console.log(selectedStickerIndex);
+            } else {
+              setSelectedStickerIndex(null);
+            }
+
+            if (props.tool === "text") {
+              createInput(e);
+            }
+
+            if (props.tool === "shape") {
+              setDrawShapesBorder(true);
+
+              setShapeBorders([
+                {
+                  startPoint: [{ x: pos.x, y: pos.y }],
+                  endPoint: [{ x: pos.x, y: pos.y }],
+                },
+              ]);
+            }
+
+            if (props.tool == "other") {
+              isDraggingRef.current = true;
+              previousViewPosition.current = { x: e.clientX, y: e.clientY };
+            }
+
+            props.setDrawIn(false);
+            props.setRabOut(false);
+            props.setShapesBar(false);
+
+            if (position.isTracking) {
+              setCurrentStroke([{ x: pos.x, y: pos.y }]);
+            }
+
+            if (props.tool == "sticker") {
+              setCurrentstickerStroke(() => [{ x: pos.x - 60, y: pos.y - 20 }]);
+            }
+          }}
+          onMouseMove={(e: React.MouseEvent<HTMLCanvasElement, MouseEvent>) => {
+            if (props.tool === "other" && isDraggingRef.current) {
+              getNewViewportPosition(e);
+            }
+
+            const pos = getPos(e);
+            if (!pos) return;
+            if (
+              position.isTracking &&
+              (props.tool == "pen" || props.tool == "rubber")
+            ) {
+              setCurrentStroke((prev) => [...prev, { x: pos.x, y: pos.y }]);
+            }
+
+            if (props.tool === "shape" && drawShapesBorder) {
+              setShapeBorders((prev) => {
+                const last = prev[prev.length - 1];
+
+                const updatedLast = {
+                  ...last,
+                  endPoint: [{ x: pos.x, y: pos.y }],
+                };
+                return [updatedLast];
+              });
+            }
+            render(e);
+          }}
+          onMouseUp={(e) => {
+            const pos = getPos(e);
+            if (!pos) return;
+
+            if (
+              currentStroke.length > 0 &&
+              (props.tool == "pen" || props.tool == "rubber")
+            ) {
+              setStrokes((prev) => [
+                ...prev,
+                {
+                  penColor: color.penColor,
+                  width: props.brushSize,
+                  tool: props.tool === "pen" ? "pen" : "rubber",
+                  points: currentStroke.map((p) => ({ ...p })),
+                },
+              ]);
+              setCurrentStroke([]);
+              positionRef.current = null;
+            } else {
+              setCurrentStroke([]);
+              isDraggingRef.current = false;
+            }
+
+            if (props.tool === "shape" && shapeBorders[0].startPoint) {
+              setDrawShapesBorder(false);
+              setShapeStrokes((prev) => [
+                ...prev,
+                {
+                  type: type,
+                  color: color.shapeColor,
+                  width: Math.abs(
+                    shapeBorders[0].startPoint[0].x -
+                      shapeBorders[0].endPoint[0].x
+                  ),
+                  height: Math.abs(
+                    shapeBorders[0].startPoint[0].y -
+                      shapeBorders[0].endPoint[0].y
+                  ),
+                  left: Math.min(
+                    shapeBorders[0].startPoint[0].x,
+                    shapeBorders[0].endPoint[0].x
+                  ),
+                  top: Math.min(
+                    shapeBorders[0].startPoint[0].y,
+                    shapeBorders[0].endPoint[0].y
+                  ),
+                  borderWidth: 0,
+                  borderStyle: "solid",
+                  points: [
+                    {
+                      startPoint: shapeBorders[0].startPoint,
+                      endPoint: shapeBorders[0].endPoint,
+                    },
+                  ],
+                },
+              ]);
+            }
+
+            if (props.tool == "sticker") {
+              setStickerStrokes((prev) => [
+                ...prev,
+                {
+                  src: props.choosenSticker,
+                  width: props.stickerSize[0],
+                  height: props.stickerSize[1],
+                  points: currentStickerStroke.map((p) => ({ ...p })),
+                  top: pos.y - 20,
+                  left: pos.x - 60,
+                },
+              ]);
+            }
+          }}
+        />
+      </div>
       {drawShapesBorder && shapeBorders.length > 0 && (
         <div
           className="absolute border-2 pointer-events-none"
@@ -371,143 +608,11 @@ export default function Canva(props: {
             width: `${shapeWidth}px`,
             height: `${shapeHeight}px`,
             borderColor: `${color.shapeColor}`,
+            borderRadius: `${radius}`,
+            rotate: rotate,
           }}
         ></div>
       )}
-
-      {shapeStrokes.length > 0 && (
-        <AllShapes
-          shapeStrokes={shapeStrokes}
-          viewport={viewportTransformRef.current}
-        />
-      )}
-      <canvas
-        ref={canvasRef}
-        height={canvasHeight}
-        width={canvasWidth}
-        className={styles}
-        onMouseEnter={() => props.setShowCustom(true)}
-        onMouseLeave={() => props.setShowCustom(false)}
-        onWheel={(e) => {
-          updateScale(e);
-          render(e);
-        }}
-        onMouseDown={(e: React.MouseEvent<HTMLCanvasElement, MouseEvent>) => {
-          const pos = getPos(e);
-          if (!pos) return;
-
-          if (props.tool === "text") {
-            createInput(e);
-          }
-
-          if (props.tool === "shape") {
-            setDrawShapesBorder(true);
-
-            setShapeBorders([
-              {
-                startPoint: [{ x: pos.x, y: pos.y }],
-                endPoint: [{ x: pos.x, y: pos.y }],
-              },
-            ]);
-          }
-
-          if (props.tool == "other") {
-            isDraggingRef.current = true;
-            previousViewPosition.current = { x: e.clientX, y: e.clientY };
-          }
-
-          props.setDrawIn(false);
-          props.setRabOut(false);
-
-          if (position.isTracking) {
-            setCurrentStroke([{ x: pos.x, y: pos.y }]);
-          }
-
-          if (props.tool == "sticker") {
-            setCurrentstickerStroke(() => [{ x: pos.x - 60, y: pos.y - 20 }]);
-          }
-        }}
-        onMouseMove={(e: React.MouseEvent<HTMLCanvasElement, MouseEvent>) => {
-          if (props.tool === "other" && isDraggingRef.current) {
-            getNewViewportPosition(e);
-          }
-
-          const pos = getPos(e);
-          if (!pos) return;
-          if (
-            position.isTracking &&
-            (props.tool == "pen" || props.tool == "rubber")
-          ) {
-            setCurrentStroke((prev) => [...prev, { x: pos.x, y: pos.y }]);
-          }
-
-          if (props.tool === "shape" && drawShapesBorder) {
-            setShapeBorders((prev) => {
-              const last = prev[prev.length - 1];
-
-              const updatedLast = {
-                ...last,
-                endPoint: [{ x: pos.x, y: pos.y }],
-              };
-              return [updatedLast];
-            });
-          }
-          render(e);
-        }}
-        onMouseUp={() => {
-          if (
-            currentStroke.length > 0 &&
-            (props.tool == "pen" || props.tool == "rubber")
-          ) {
-            setStrokes((prev) => [
-              ...prev,
-              {
-                penColor: color.penColor,
-                width: props.brushSize,
-                tool: props.tool === "pen" ? "pen" : "rubber",
-                points: currentStroke.map((p) => ({ ...p })),
-              },
-            ]);
-            setCurrentStroke([]);
-            positionRef.current = null;
-          } else {
-            setCurrentStroke([]);
-            isDraggingRef.current = false;
-          }
-
-          if (props.tool === "shape") {
-            setDrawShapesBorder(false);
-            setShapeStrokes((prev) => [
-              ...prev,
-              {
-                color: color.shapeColor,
-                width: shapeWidth,
-                height: shapeHeight,
-                left: shapeLeft,
-                top: shapeTop,
-                points: [
-                  {
-                    startPoint: shapeBorders[0].startPoint,
-                    endPoint: shapeBorders[0].endPoint,
-                  },
-                ],
-              },
-            ]);
-          }
-
-          if (props.tool == "sticker") {
-            setStickerStrokes((prev) => [
-              ...prev,
-              {
-                src: props.choosenSticker,
-                width: props.stickerSize[0],
-                height: props.stickerSize[1],
-                points: currentStickerStroke.map((p) => ({ ...p })),
-              },
-            ]);
-          }
-        }}
-      />
     </div>
   );
 }

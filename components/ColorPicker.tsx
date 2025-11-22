@@ -1,11 +1,18 @@
+"use client";
+
 import { useColor } from "@/lib/utils/useColorContext";
 import { useCallback } from "react";
 import { HexColorPicker } from "react-colorful";
 import useEyeDropper from "use-eye-dropper";
 import IconButton from "./IconButton";
 
+type EyeDropperError = {
+  canceled: boolean;
+};
+
 export default function ColorPicker(props: {
   type: "stroke" | "text" | "shape";
+  top?: number;
   bottom?: number;
   width?: number | null;
   left?: number;
@@ -46,8 +53,9 @@ export default function ColorPicker(props: {
         const color = await open();
         setColor(color.sRGBHex);
         props.onChangeColor?.(color.sRGBHex);
-      } catch (e: any) {
-        if (!e.canceled) return;
+      } catch (e) {
+        const err = e as EyeDropperError;
+        if (!err.canceled) return;
       }
     };
     openPicker();
@@ -62,6 +70,7 @@ export default function ColorPicker(props: {
       <div
         className="color-picker-container"
         style={{
+          top: `${props.top}px`,
           bottom: `${props.bottom}px`,
           left: `${props.left}%`,
           right: `${props.right}%`,
@@ -91,11 +100,11 @@ export default function ColorPicker(props: {
           {isSupported() ? (
             <div
               onClick={pickColor}
-              className="border-2 border-[#FFC0C4] min-w-9 h-full rounded-lg"
+              className="border-2 border-[#FFC0C4] min-w-9 h-9 rounded-lg"
             >
               <IconButton
                 icon="colorize"
-                size={6}
+                scale={1}
                 color="#1C1B1F"
               />
             </div>

@@ -3,19 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import TextSettings from "./textSettings/page";
 import { useFont } from "@/lib/utils/useFontContext";
-
-type Point = {
-  x: number;
-  y: number;
-};
-
-type TextStroke = {
-  value?: string;
-  color: string;
-  font: string;
-  fontSize: number;
-  points: Point[];
-};
+import { TextStroke } from "@/lib/types/CanvasTypes";
 
 interface Props {
   textStrokes: TextStroke[];

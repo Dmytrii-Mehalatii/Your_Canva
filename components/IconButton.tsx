@@ -10,7 +10,6 @@ export default function IconButton(props: {
   onClick?: () => void;
 }) {
   return (
-    //I decided to use props.size to define different icons which isnt used in the toolbar, its a little bit weird so I left this comment here to not forgot about that xD
     <div
       className={`flex items-center justify-center ${props.bigBox ? "w-[78px]" : ""} h-full `}
     >

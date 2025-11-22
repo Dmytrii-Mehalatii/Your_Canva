@@ -20,23 +20,37 @@ export default function ToolBar(props: {
   setShapesBar: (p: boolean) => void;
 }) {
   const { penColor } = useColor();
-  console.log(props.tool);
   return (
     <div className="bg-white w-[508px] h-[60px] rounded-2xl shadow-[0_2px_4px_0_rgba(255,192,196,1)] absolute flex flex-row right-[50%] left-[50%] translate-x-[-50%] bottom-[48px] px-2 items-end">
-      <IconButton
-        icon="arrow_selector_tool"
-        color="#D7000F"
-        bigBox={true}
-        onClick={() => {
-          props.setDraw(false);
-          props.setRabOut(false);
-          props.setDrawIn(false);
-          props.setTool("other");
-          props.setStickerBar(false);
-          props.setShapesBar(false);
-        }}
-      />
-
+      {props.tool == "other" ? (
+        <IconButton
+          icon="arrow_selector_tool"
+          color="#D7000F"
+          bigBox={true}
+          onClick={() => {
+            props.setDraw(false);
+            props.setRabOut(false);
+            props.setDrawIn(false);
+            props.setTool("other");
+            props.setStickerBar(false);
+            props.setShapesBar(false);
+          }}
+        />
+      ) : (
+        <IconButton
+          icon="arrow_selector_tool"
+          color="black"
+          bigBox={true}
+          onClick={() => {
+            props.setDraw(false);
+            props.setRabOut(false);
+            props.setDrawIn(false);
+            props.setTool("other");
+            props.setStickerBar(false);
+            props.setShapesBar(false);
+          }}
+        />
+      )}
       <div className="h-full w-[2px] bg-[#FFC0C4]" />
 
       <div className="flex items-center justify-center w-40 h-[80px]">
@@ -80,48 +94,95 @@ export default function ToolBar(props: {
       </div>
 
       <div className="h-full w-[2px] bg-[#FFC0C4]" />
+      {props.tool == "shape" ? (
+        <IconButton
+          icon="shapes"
+          color="#D7000F"
+          bigBox={true}
+          onClick={() => {
+            props.setShapesBar(!props.shapesBar);
+            props.setDraw(false);
+            props.setRabOut(false);
+            props.setDrawIn(false);
+            props.setStickerBar(false);
+            props.setTool("shape");
+          }}
+        />
+      ) : (
+        <IconButton
+          icon="shapes"
+          color="black"
+          bigBox={true}
+          onClick={() => {
+            props.setShapesBar(!props.shapesBar);
+            props.setDraw(false);
+            props.setRabOut(false);
+            props.setDrawIn(false);
+            props.setStickerBar(false);
+            props.setTool("shape");
+          }}
+        />
+      )}
 
-      <IconButton
-        icon="shapes"
-        color="#D7000F"
-        bigBox={true}
-        onClick={() => {
-          props.setShapesBar(!props.shapesBar);
-          props.setDraw(false);
-          props.setRabOut(false);
-          props.setDrawIn(false);
-          props.setStickerBar(false);
-          props.setTool("shape");
-        }}
-      />
+      {props.tool == "text" ? (
+        <IconButton
+          icon="title"
+          color="#D7000F"
+          bigBox={true}
+          onClick={() => {
+            props.setDraw(false);
+            props.setRabOut(false);
+            props.setDrawIn(false);
+            props.setStickerBar(false);
+            props.setTool("text");
+            props.setShapesBar(false);
+          }}
+        />
+      ) : (
+        <IconButton
+          icon="title"
+          color="black"
+          bigBox={true}
+          onClick={() => {
+            props.setDraw(false);
+            props.setRabOut(false);
+            props.setDrawIn(false);
+            props.setStickerBar(false);
+            props.setTool("text");
+            props.setShapesBar(false);
+          }}
+        />
+      )}
 
-      <IconButton
-        icon="title"
-        color="#D7000F"
-        bigBox={true}
-        onClick={() => {
-          props.setDraw(false);
-          props.setRabOut(false);
-          props.setDrawIn(false);
-          props.setStickerBar(false);
-          props.setTool("text");
-          props.setShapesBar(false);
-        }}
-      />
-
-      <IconButton
-        icon="add_reaction"
-        color="#D7000F"
-        bigBox={true}
-        onClick={() => {
-          props.setStickerBar(!props.stickerBar);
-          props.setTool("sticker");
-          props.setDraw(false);
-          props.setRabOut(false);
-          props.setDrawIn(false);
-          props.setShapesBar(false);
-        }}
-      />
+      {props.tool == "sticker" ? (
+        <IconButton
+          icon="add_reaction"
+          color="#D7000F"
+          bigBox={true}
+          onClick={() => {
+            props.setStickerBar(!props.stickerBar);
+            props.setTool("sticker");
+            props.setDraw(false);
+            props.setRabOut(false);
+            props.setDrawIn(false);
+            props.setShapesBar(false);
+          }}
+        />
+      ) : (
+        <IconButton
+          icon="add_reaction"
+          color="black"
+          bigBox={true}
+          onClick={() => {
+            props.setStickerBar(!props.stickerBar);
+            props.setTool("sticker");
+            props.setDraw(false);
+            props.setRabOut(false);
+            props.setDrawIn(false);
+            props.setShapesBar(false);
+          }}
+        />
+      )}
     </div>
   );
 }

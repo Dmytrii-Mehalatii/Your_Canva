@@ -10,6 +10,7 @@ import RubberToolbar from "@/components/RubberToolbar";
 import { FontProvider } from "@/lib/utils/useFontContext";
 import StickerBar from "@/components/StickerToolbar";
 import ShapesToolbar from "@/components/ShapesToolbar";
+import { ShapeTypeProvider } from "@/lib/utils/useShapeContext";
 
 export default function Home() {
   const [draw, setDraw] = useState(false);
@@ -31,67 +32,70 @@ export default function Home() {
   return (
     <ColorProvider>
       <FontProvider>
-        {showCustom && (
-          <Cursor
-            size={brushSize}
+        <ShapeTypeProvider>
+          <Canva
             draw={draw}
-          />
-        )}
-
-        {drawIn && (
-          <PenToolbar
             brushSize={brushSize}
-            setBrushSize={setBrushSize}
-          />
-        )}
-
-        {rabOut && (
-          <RubberToolbar
-            brushSize={brushSize}
-            setBrushSize={setBrushSize}
-            setClearAll={setClearAll}
-          />
-        )}
-
-        {stickerBar && (
-          <StickerBar
+            tool={tool}
+            setDrawIn={setDrawIn}
+            setRabOut={setRabOut}
+            showCustom={showCustom}
+            setShowCustom={setShowCustom}
+            stickerBar={stickerBar}
             choosenSticker={choosenSticker}
-            setStickerSize={setStickerSize}
-            setChoosenSticker={setChoosenSticker}
+            clearAll={clearAll}
+            setClearAll={setClearAll}
+            stickerSize={stickerSize}
+            setShapesBar={setShapesBar}
           />
-        )}
 
-        {shapesBar && <ShapesToolbar />}
+          {showCustom && (
+            <Cursor
+              size={brushSize}
+              draw={draw}
+            />
+          )}
 
-        <ToolBar
-          draw={draw}
-          setDraw={setDraw}
-          drawIn={drawIn}
-          setDrawIn={setDrawIn}
-          rabOut={rabOut}
-          setRabOut={setRabOut}
-          stickerBar={stickerBar}
-          setStickerBar={setStickerBar}
-          tool={tool}
-          setTool={setTool}
-          shapesBar={shapesBar}
-          setShapesBar={setShapesBar}
-        />
+          {drawIn && (
+            <PenToolbar
+              brushSize={brushSize}
+              setBrushSize={setBrushSize}
+            />
+          )}
 
-        <Canva
-          draw={draw}
-          brushSize={brushSize}
-          tool={tool}
-          setDrawIn={setDrawIn}
-          setRabOut={setRabOut}
-          showCustom={showCustom}
-          setShowCustom={setShowCustom}
-          stickerBar={stickerBar}
-          choosenSticker={choosenSticker}
-          clearAll={clearAll}
-          setClearAll={setClearAll}
-          stickerSize={stickerSize}
-        />
+          {rabOut && (
+            <RubberToolbar
+              brushSize={brushSize}
+              setBrushSize={setBrushSize}
+              setClearAll={setClearAll}
+            />
+          )}
+
+          {stickerBar && (
+            <StickerBar
+              choosenSticker={choosenSticker}
+              setStickerSize={setStickerSize}
+              setChoosenSticker={setChoosenSticker}
+            />
+          )}
+
+          {shapesBar && <ShapesToolbar />}
+
+          <ToolBar
+            draw={draw}
+            setDraw={setDraw}
+            drawIn={drawIn}
+            setDrawIn={setDrawIn}
+            rabOut={rabOut}
+            setRabOut={setRabOut}
+            stickerBar={stickerBar}
+            setStickerBar={setStickerBar}
+            tool={tool}
+            setTool={setTool}
+            shapesBar={shapesBar}
+            setShapesBar={setShapesBar}
+          />
+        </ShapeTypeProvider>
       </FontProvider>
     </ColorProvider>
   );

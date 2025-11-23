@@ -1,36 +1,38 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Whiteboard App
 
-## Getting Started
+This project is a custom-built whiteboard web application designed for drawing, sketching, and note-taking directly in the browser. It is created entirely from scratch without using any external whiteboard or drawing libraries.
 
-First, run the development server:
+## Tech Stack
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+- Frontend: Next.js, TypeScript, Tailwind CSS
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+- Design Tools: Figma, Krita
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- Core Technology: Pure HTML Canvas API (no external drawing libraries)
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Features
 
-## Learn More
+- Freehand drawing with fully custom canvas logic
 
-To learn more about Next.js, take a look at the following resources:
+- Shape tools and color options
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- Panning & smooth canvas movement
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- Zooming functionality with scroll and controls
 
-## Deploy on Vercel
+- Sticker support (place, move, resize)
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+- Clean, responsive, and fast UI
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Screenshots
+
+![Home Page Drawings](./public/screenshots/draw.png)
+
+![Home Page Shapes](./public/screenshots/shape.png)
+
+> [!NOTE]
+>
+> ## Design & Art
+>
+> The entire website, including the UI/UX layout and visual design, was created by me
+> All design elements, illustrations, and graphics were created by me also:)

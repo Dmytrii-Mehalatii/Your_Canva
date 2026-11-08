@@ -6,16 +6,10 @@ export const metadata: Metadata = {
   description: "Basic canva website where you can place your thoughts",
 };
 
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en">
-      <body className={`bg-[#FFFAFA] antialiased overflow-hidden`}>
-        {children}
-      </body>
+      <body className="overflow-hidden bg-snow antialiased">{children}</body>
     </html>
   );
 }

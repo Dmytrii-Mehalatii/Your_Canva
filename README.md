@@ -24,6 +24,16 @@ This project is a custom-built whiteboard web application designed for drawing, 
 
 - Clean, responsive, and fast UI
 
+## Running locally
+
+```bash
+npm install
+npm run dev        # http://localhost:3000
+npm run typecheck  # tsc
+npm run lint       # eslint
+npm run test:e2e   # builds, then drives every tool in a headless Chrome (needs Chrome installed)
+```
+
 ## Screenshots
 
 ![Home Page Drawings](./public/screenshots/draw.png)

@@ -120,6 +120,7 @@ try {
   check("pen toolbar opens", await hasLabel("Brush size"));
   await drag([400, 300], [600, 400]);
   let strokes = await stored("whiteboard:strokes");
+  let shapes;
   check("stroke persisted", strokes?.length === 1 && strokes[0].tool === "pen" && strokes[0].points.length > 2);
   check("pen toolbar closes when drawing starts", !(await hasLabel("Brush size")));
   check("stroke pixels painted", (await canvasAlphaAt(500, 350)) > 0);
@@ -140,13 +141,38 @@ try {
   check("eraser stroke persisted", strokes?.length === 4 && strokes[3].tool === "eraser");
   check("eraser cleared pixels", (await canvasAlphaAt(500, 350)) === 0);
 
+  // The eraser cuts through shapes like ink: a swipe leaves a gap, the rest of the shape stays.
+  await clickLabel("Shapes");
+  await clickLabel("Square");
+  await drag([900, 450], [1000, 550]);
+  check("shape painted on the canvas", (await canvasAlphaAt(950, 500)) > 0);
+  await clickLabel("Eraser");
+  await drag([880, 500], [1020, 500]);
+  shapes = await stored("whiteboard:shapes");
+  check(
+    "eraser cuts a gap through a shape and keeps the rest",
+    (await canvasAlphaAt(950, 500)) === 0 && (await canvasAlphaAt(950, 465)) > 0 && shapes?.length === 1,
+  );
+  // A shape drawn after the erasing is untouched by it.
+  await clickLabel("Shapes");
+  await clickLabel("Circle");
+  await drag([920, 470], [980, 530]);
+  check("later shape covers earlier erasing", (await canvasAlphaAt(950, 500)) > 0);
+  await clickLabel("Select");
+  await clickAt(950, 500);
+  await clickLabel("Delete shape");
+  await clickAt(950, 465);
+  await clickLabel("Delete shape");
+  shapes = await stored("whiteboard:shapes");
+  check("partially erased shape is still a selectable object", shapes?.length === 0);
+
   // --- Shapes ---
   await clickLabel("Shapes");
   await clickLabel("Circle");
   await drag([200, 200], [300, 300]);
-  let shapes = await stored("whiteboard:shapes");
+  shapes = await stored("whiteboard:shapes");
   check("circle shape persisted", shapes?.length === 1 && shapes[0].type === "circle" && Math.round(shapes[0].width) === 100);
-  check("circle rendered as an SVG path", await has('svg[data-shape="circle"] path'));
+  check("circle painted on the canvas", (await canvasAlphaAt(250, 250)) > 0);
   await clickAt(700, 600);
   shapes = await stored("whiteboard:shapes");
   check("zero-size click adds no shape", shapes?.length === 1);
@@ -234,7 +260,7 @@ try {
   // --- Persistence ---
   await reload(200);
   const persisted = await storedAll();
-  check("board survives reload", persisted.texts?.length === 1 && persisted.strokes?.length === 4 && (await count("textarea")) === 1);
+  check("board survives reload", persisted.texts?.length === 1 && persisted.strokes?.length === 5 && (await count("textarea")) === 1);
   check("strokes repaint on load", (await canvasAlphaAt(420, 310)) > 0 && (await canvasAlphaAt(900, 150)) > 0);
 
   // --- Legacy storage import ---
@@ -264,7 +290,7 @@ try {
       migrated.stickers?.[0]?.y === 8 &&
       oldKeysLeft.length === 0,
   );
-  check("legacy items render", (await count("textarea")) === 1 && (await has('svg[data-shape="rhombus"]')));
+  check("legacy items render", (await count("textarea")) === 1 && (await canvasAlphaAt(30, 36)) > 0);
 
   // --- Every shape type draws, persists and renders as a path ---
   await page.evaluate(() => localStorage.clear());
@@ -276,12 +302,13 @@ try {
     await drag([80 + i * 60, 420], [130 + i * 60, 480]);
   }
   shapes = await stored("whiteboard:shapes");
+  const centersPainted = await Promise.all(SHAPE_TYPES.map((_, i) => canvasAlphaAt(105 + i * 60, 450)));
   check(
     "all shape types persist and render",
     shapes?.length === SHAPE_TYPES.length &&
       shapes.every((s, i) => s.type === SHAPE_TYPES[i]) &&
-      (await count("svg[data-shape] path")) === SHAPE_TYPES.length,
-    `${shapes?.length} shapes, ${await count("svg[data-shape] path")} paths`,
+      centersPainted.every((alpha) => alpha > 0),
+    `${shapes?.length} shapes, painted centers: ${centersPainted.join(",")}`,
   );
 
   // --- Clear All ---

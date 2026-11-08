@@ -7,7 +7,6 @@ import type { Board } from "@/lib/hooks/useBoard";
 import { useImages } from "@/lib/hooks/useImages";
 import type { Point, Sticker, Stroke, Tool, ToolSettings, Viewport } from "@/lib/types";
 import BrushCursor from "./BrushCursor";
-import ShapeLayer from "./ShapeLayer";
 import StickerSettings from "./StickerSettings";
 import TextLayer from "./TextLayer";
 
@@ -56,8 +55,10 @@ export default function Canvas({ tool, settings, board, onPointerDown }: Props) 
 
   const { hoverPreview } = TOOLS[tool];
   const currentStroke = gesture?.kind === "stroke" ? gesture.stroke : null;
-  const shapeDraft =
-    gesture?.kind === "shape" ? { ...rectFromPoints(gesture.start, gesture.end), ...settings.shape } : null;
+  const shapeDraft = useMemo(
+    () => (gesture?.kind === "shape" ? { ...rectFromPoints(gesture.start, gesture.end), ...settings.shape } : null),
+    [gesture, settings.shape],
+  );
 
   const stickerSrcs = useMemo(() => {
     const srcs = board.stickers.items.map((sticker) => sticker.src);
@@ -86,13 +87,14 @@ export default function Canvas({ tool, settings, board, onPointerDown }: Props) 
   useLayoutEffect(() => {
     if (!canvasRef.current) return;
     painter.current ??= createPainter();
-    painter.current.paint(canvasRef.current, size, viewport, board.strokes.items, {
-      currentStroke,
-      stickers: board.stickers.items,
-      stickerPreview,
-      images,
-    });
-  }, [board.strokes.items, board.stickers.items, currentStroke, stickerPreview, images, viewport, size]);
+    painter.current.paint(
+      canvasRef.current,
+      size,
+      viewport,
+      { strokes: board.strokes.items, shapes: board.shapes.items },
+      { currentStroke, shapeDraft, stickers: board.stickers.items, stickerPreview, images },
+    );
+  }, [board.strokes.items, board.shapes.items, board.stickers.items, currentStroke, shapeDraft, stickerPreview, images, viewport, size]);
 
   const localPoint = (e: CanvasEvent): Point => {
     const rect = e.currentTarget.getBoundingClientRect();
@@ -188,7 +190,6 @@ export default function Canvas({ tool, settings, board, onPointerDown }: Props) 
 
   return (
     <div className="relative">
-      <ShapeLayer shapes={board.shapes.items} viewport={viewport} draft={shapeDraft} />
       <canvas
         ref={canvasRef}
         style={{ width: size.width, height: size.height }}

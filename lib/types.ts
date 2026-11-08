@@ -13,7 +13,13 @@ export type BorderStyle = "solid" | "dashed" | "dotted";
 /** A catalog sticker: the image and the size it is placed at. */
 export type Sticker = Size & { name: string; src: string };
 
-export type Stroke = {
+/**
+ * Strokes and shapes share one paint order, so an eraser stroke only cuts through what was
+ * drawn before it. Items saved before this field existed have none and paint first.
+ */
+type Ordered = { order?: number };
+
+export type Stroke = Ordered & {
   id: string;
   tool: "pen" | "eraser";
   color: string;
@@ -31,7 +37,8 @@ export type TextItem = Point & {
 };
 export type TextStyle = Pick<TextItem, "color" | "font" | "fontSize">;
 
-export type ShapeItem = Rect & {
+export type ShapeItem = Rect &
+  Ordered & {
   id: string;
   type: ShapeType;
   color: string;

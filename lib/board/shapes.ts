@@ -1,6 +1,8 @@
-import type { ShapeType } from "../types";
+import type { Point as BoardPoint, Rect, ShapeType } from "../types";
+import { contains } from "./geometry";
 
 type Point = [number, number];
+type ShapeOutline = Rect & { type: ShapeType };
 
 /** Outline of a shape filling a `width` x `height` box, as SVG path data. */
 export function shapePath(type: ShapeType, width: number, height: number): string {
@@ -62,4 +64,16 @@ function heartPath(w: number, h: number) {
     `C ${p(0.86, 0)} ${p(1, 0.12)} ${p(1, 0.32)}`,
     `C ${p(1, 0.68)} ${p(0.5, 1)} ${p(0.5, 1)} Z`,
   ].join(" ");
+}
+
+let hitContext: CanvasRenderingContext2D | null = null;
+
+/** Whether a board point lies inside the shape's outline, not just its bounding box. */
+export function shapeContains(shape: ShapeOutline, point: BoardPoint) {
+  if (!contains(shape, point)) return false;
+  hitContext ??= document.createElement("canvas").getContext("2d");
+  // Without a 2D context (unlikely) the bounding box check above has to do.
+  if (!hitContext) return true;
+  const path = new Path2D(shapePath(shape.type, shape.width, shape.height));
+  return hitContext.isPointInPath(path, point.x - shape.x, point.y - shape.y);
 }

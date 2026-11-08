@@ -10,7 +10,7 @@ const roundPoint = (point: Point): Point => ({
 });
 
 export function makeStroke(tool: Stroke["tool"], color: string, width: number, start: Point): Stroke {
-  return { id: newId(), tool, color, width, points: [roundPoint(start)] };
+  return { id: newId(), order: Date.now(), tool, color, width, points: [roundPoint(start)] };
 }
 
 export function appendPoint(stroke: Stroke, point: Point): Stroke {
@@ -22,7 +22,7 @@ export function makeText(at: Point, style: TextStyle): TextItem {
 }
 
 export function makeShape(rect: Rect, style: ShapeStyle): ShapeItem {
-  return { id: newId(), ...rect, ...style, ...SHAPE_DEFAULTS };
+  return { id: newId(), order: Date.now(), ...rect, ...style, ...SHAPE_DEFAULTS };
 }
 
 /** Where a sticker lands when placed with the pointer at `center`; also used for the hover preview. */

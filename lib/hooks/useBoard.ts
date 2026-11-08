@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { contains } from "../board/geometry";
+import { shapeContains } from "../board/shapes";
 import { importLegacyShapes, importLegacyStickers, importLegacyStrokes, importLegacyTexts } from "../board/legacy";
 import type { Point, Selection, ShapeItem, StickerItem, Stroke, TextItem } from "../types";
 import { usePersistedList } from "./usePersistedList";
@@ -42,7 +43,7 @@ export function useBoard() {
   const itemAt = (point: Point): Selection => {
     const sticker = stickers.items.findLast((item) => contains(item, point));
     if (sticker) return { kind: "sticker", id: sticker.id };
-    const shape = shapes.items.findLast((item) => contains(item, point));
+    const shape = shapes.items.findLast((item) => shapeContains(item, point));
     return shape ? { kind: "shape", id: shape.id } : null;
   };
 
